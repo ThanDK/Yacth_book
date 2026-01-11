@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { MainLayout } from './components/layout';
 import { useBookingState } from './hooks';
@@ -7,8 +8,11 @@ import BookingCalendar from './pages/BookingCalendar';
 import BookingList from './pages/BookingList';
 import DayDetail from './pages/DayDetail';
 import YachtSettings from './pages/YachtSettings';
+import { SavedUsers } from './pages/fractional';
 
 function App() {
+  const [calendarMode, setCalendarMode] = useState('regular'); // 'regular' or 'fractional'
+
   const {
     yachts,
     bookings,
@@ -25,6 +29,14 @@ function App() {
     isLoading,
     error
   } = useBookingState();
+
+  // Filter yachts based on calendar mode
+  const filteredYachts = activeYachts.filter(y => {
+    if (calendarMode === 'fractional') {
+      return y.yachtType === 'FRACTIONAL';
+    }
+    return y.yachtType !== 'FRACTIONAL' || !y.yachtType;
+  });
 
   if (isLoading) {
     return (
@@ -57,23 +69,27 @@ function App() {
 
   return (
     <BrowserRouter>
-      <MainLayout>
+      <MainLayout calendarMode={calendarMode} onModeChange={setCalendarMode}>
         <Routes>
+          {/* Calendar */}
           <Route
             path="/"
             element={
               <BookingCalendar
-                yachts={activeYachts}
+                yachts={filteredYachts}
                 bookings={bookings}
                 getBookingsForDate={getBookingsForDate}
+                calendarMode={calendarMode}
               />
             }
           />
+
+          {/* Day Detail - booking */}
           <Route
             path="/day/:dateStr"
             element={
               <DayDetail
-                yachts={activeYachts}
+                yachts={filteredYachts}
                 bookings={bookings}
                 addBooking={addBooking}
                 updateBooking={updateBooking}
@@ -81,9 +97,12 @@ function App() {
                 getBookingsForDate={getBookingsForDate}
                 getAvailableSlots={getAvailableSlots}
                 isSlotBooked={isSlotBooked}
+                calendarMode={calendarMode}
               />
             }
           />
+
+          {/* Booking List */}
           <Route
             path="/bookings"
             element={
@@ -92,10 +111,11 @@ function App() {
                 yachts={yachts}
                 updateBooking={updateBooking}
                 deleteBooking={deleteBooking}
-                yachtService={yachts} // Pass yachts if needed, but BookingList uses it
               />
             }
           />
+
+          {/* Yacht Settings */}
           <Route
             path="/yachts"
             element={
@@ -108,6 +128,9 @@ function App() {
               />
             }
           />
+
+          {/* Saved Users */}
+          <Route path="/users" element={<SavedUsers />} />
         </Routes>
       </MainLayout>
     </BrowserRouter>

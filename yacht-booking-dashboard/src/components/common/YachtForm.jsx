@@ -8,6 +8,7 @@ export default function YachtForm({ yacht, onSubmit, onCancel }) {
         name: '',
         description: '',
         capacity: DEFAULT_VALUES.yacht.capacity,
+        yachtType: 'REGULAR',
         timeSlots: []
     });
     const [newSlot, setNewSlot] = useState({
@@ -24,6 +25,7 @@ export default function YachtForm({ yacht, onSubmit, onCancel }) {
                 name: yacht.name || '',
                 description: yacht.description || '',
                 capacity: yacht.capacity || DEFAULT_VALUES.yacht.capacity,
+                yachtType: yacht.yachtType || 'REGULAR',
                 timeSlots: [...(yacht.timeSlots || [])]
             });
         } else {
@@ -31,6 +33,7 @@ export default function YachtForm({ yacht, onSubmit, onCancel }) {
                 name: '',
                 description: '',
                 capacity: DEFAULT_VALUES.yacht.capacity,
+                yachtType: 'REGULAR',
                 timeSlots: []
             });
         }
@@ -131,6 +134,43 @@ export default function YachtForm({ yacht, onSubmit, onCancel }) {
                     onChange={(e) => setFormData(prev => ({ ...prev, capacity: parseInt(e.target.value) || 1 }))}
                     className="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                 />
+            </div>
+
+            {/* Yacht Type */}
+            <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1.5">ประเภทเรือ</label>
+                <div className="flex gap-4">
+                    <label className={`flex-1 flex items-center justify-center gap-2 p-3 border-2 rounded-xl cursor-pointer transition-all ${formData.yachtType === 'REGULAR'
+                            ? 'border-blue-500 bg-blue-50 text-blue-700'
+                            : 'border-slate-200 hover:border-slate-300'
+                        }`}>
+                        <input
+                            type="radio"
+                            name="yachtType"
+                            value="REGULAR"
+                            checked={formData.yachtType === 'REGULAR'}
+                            onChange={(e) => setFormData(prev => ({ ...prev, yachtType: e.target.value }))}
+                            className="hidden"
+                        />
+                        <span className="text-lg">🚤</span>
+                        <span className="font-medium">Regular</span>
+                    </label>
+                    <label className={`flex-1 flex items-center justify-center gap-2 p-3 border-2 rounded-xl cursor-pointer transition-all ${formData.yachtType === 'FRACTIONAL'
+                            ? 'border-purple-500 bg-purple-50 text-purple-700'
+                            : 'border-slate-200 hover:border-slate-300'
+                        }`}>
+                        <input
+                            type="radio"
+                            name="yachtType"
+                            value="FRACTIONAL"
+                            checked={formData.yachtType === 'FRACTIONAL'}
+                            onChange={(e) => setFormData(prev => ({ ...prev, yachtType: e.target.value }))}
+                            className="hidden"
+                        />
+                        <span className="text-lg">🔒</span>
+                        <span className="font-medium">Fractional</span>
+                    </label>
+                </div>
             </div>
 
             {/* Time Slots */}

@@ -38,7 +38,9 @@ public class YachtServiceImpl implements YachtService {
                 .name(request.getName())
                 .description(request.getDescription())
                 .capacity(request.getCapacity())
-                .isActive(request.getIsActive())
+                .isActive(request.getIsActive() != null ? request.getIsActive() : true)
+                .yachtType(request.getYachtType() != null ? request.getYachtType()
+                        : dev.system.yatch.enums.YachtType.REGULAR)
                 .timeSlots(request.getTimeSlots())
                 .dateOverrides(request.getDateOverrides())
                 .createdAt(LocalDateTime.now())
@@ -64,6 +66,9 @@ public class YachtServiceImpl implements YachtService {
         if (request.getIsActive() != null)
             yacht.setActive(request.getIsActive());
 
+        if (request.getYachtType() != null)
+            yacht.setYachtType(request.getYachtType());
+
         if (request.getTimeSlots() != null)
             yacht.setTimeSlots(request.getTimeSlots());
         if (request.getDateOverrides() != null)
@@ -87,6 +92,7 @@ public class YachtServiceImpl implements YachtService {
                 .description(yacht.getDescription())
                 .capacity(yacht.getCapacity())
                 .isActive(yacht.isActive())
+                .yachtType(yacht.getYachtType())
                 .timeSlots(yacht.getTimeSlots())
                 .dateOverrides(yacht.getDateOverrides())
                 .createdAt(yacht.getCreatedAt())

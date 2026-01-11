@@ -2,6 +2,7 @@ package dev.system.yatch.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import dev.system.yatch.dto.common.TimeSlotDTO;
+import dev.system.yatch.enums.YachtType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -22,6 +23,8 @@ public class YachtResponse {
     private int capacity;
     @JsonProperty("isActive")
     private boolean isActive;
+
+    private YachtType yachtType; // REGULAR or FRACTIONAL
 
     private List<TimeSlotDTO> timeSlots;
 

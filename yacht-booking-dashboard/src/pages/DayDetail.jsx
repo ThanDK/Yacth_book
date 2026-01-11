@@ -1,13 +1,14 @@
 // ===== DAY DETAIL PAGE =====
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { STATUS_CONFIG } from '../config/app.config';
 import { THAI_DAYS_FULL, formatDateThai } from '../utils/date.utils';
 import { getSlotsForDate } from '../utils/booking.utils';
 import { BookingDetailModal } from '../components/common';
 import { useToast } from '../contexts/ToastContext';
+import { savedUserService } from '../services';
 
-export default function DayDetail({ yachts, addBooking, updateBooking, getBookingsForDate, isSlotBooked }) {
+export default function DayDetail({ yachts, addBooking, updateBooking, getBookingsForDate, isSlotBooked, calendarMode }) {
     const { dateStr } = useParams();
     const navigate = useNavigate();
     const toast = useToast();
@@ -17,6 +18,21 @@ export default function DayDetail({ yachts, addBooking, updateBooking, getBookin
     const [showDetailModal, setShowDetailModal] = useState(false);
     const [selectedSlot, setSelectedSlot] = useState(null);
     const [selectedBooking, setSelectedBooking] = useState(null);
+    const [savedUsers, setSavedUsers] = useState([]);
+    const [selectedUserId, setSelectedUserId] = useState('');
+
+    // Fetch saved users
+    useEffect(() => {
+        const fetchUsers = async () => {
+            try {
+                const users = await savedUserService.getAll();
+                setSavedUsers(users);
+            } catch (err) {
+                console.error('Failed to fetch saved users:', err);
+            }
+        };
+        fetchUsers();
+    }, []);
 
     // Form state for new booking
     const [form, setForm] = useState({
@@ -48,9 +64,26 @@ export default function DayDetail({ yachts, addBooking, updateBooking, getBookin
         );
     };
 
+    // Handle user selection - auto-fill form
+    const handleUserSelect = (userId) => {
+        setSelectedUserId(userId);
+        if (!userId) return;
+
+        const user = savedUsers.find(u => u.id === userId);
+        if (user) {
+            setForm(prev => ({
+                ...prev,
+                customerName: user.name,
+                phone: user.phone,
+                email: user.email || ''
+            }));
+        }
+    };
+
     // Open modal for new booking
     const openNewBooking = (yacht, slot) => {
         setSelectedSlot({ yacht, slot });
+        setSelectedUserId('');
         setForm({
             bookingDate: new Date().toISOString().split('T')[0],
             serviceDate: selectedDate.toISOString().split('T')[0],
@@ -219,6 +252,34 @@ export default function DayDetail({ yachts, addBooking, updateBooking, getBookin
                                     <label className="block text-xs font-bold text-slate-700 mb-1">วันใช้เรือ</label>
                                     <input type="date" value={form.serviceDate} onChange={e => setForm(f => ({ ...f, serviceDate: e.target.value }))} className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm" />
                                 </div>
+                            </div>
+
+                            {/* Select Saved User */}
+                            <div className="p-4 bg-purple-50 rounded-xl border border-purple-200">
+                                <label className="block text-xs font-bold text-purple-700 mb-2">
+                                    👥 เลือกจากรายชื่อที่บันทึกไว้ (หรือกรอกใหม่)
+                                </label>
+                                <select
+                                    value={selectedUserId}
+                                    onChange={(e) => handleUserSelect(e.target.value)}
+                                    className="w-full px-3 py-2 border border-purple-300 rounded-lg bg-white"
+                                >
+                                    <option value="">-- กรอกข้อมูลใหม่ --</option>
+                                    <optgroup label="🔒 Fractional Users">
+                                        {savedUsers.filter(u => u.userType === 'FRACTIONAL').map(user => (
+                                            <option key={user.id} value={user.id}>
+                                                {user.name} ({user.phone})
+                                            </option>
+                                        ))}
+                                    </optgroup>
+                                    <optgroup label="🚤 Regular Users">
+                                        {savedUsers.filter(u => u.userType === 'REGULAR').map(user => (
+                                            <option key={user.id} value={user.id}>
+                                                {user.name} ({user.phone})
+                                            </option>
+                                        ))}
+                                    </optgroup>
+                                </select>
                             </div>
 
                             {/* Customer Name */}

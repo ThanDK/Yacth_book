@@ -1,6 +1,7 @@
 package dev.system.yatch.entity;
 
 import dev.system.yatch.dto.common.TimeSlotDTO;
+import dev.system.yatch.enums.YachtType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -22,22 +23,25 @@ import java.util.Map;
 public class Yacht {
     @Id
     private String id;
-    
+
     private String name;
     private String description;
     private int capacity;
-    
+
     @Builder.Default
     private boolean isActive = true;
-    
+
+    @Builder.Default
+    private YachtType yachtType = YachtType.REGULAR; // REGULAR or FRACTIONAL
+
     private List<TimeSlotDTO> timeSlots;
-    
+
     // Key: Date string "YYYY-MM-DD", Value: List of slots for that day
     private Map<String, List<TimeSlotDTO>> dateOverrides;
-    
+
     @CreatedDate
     private LocalDateTime createdAt;
-    
+
     @LastModifiedDate
     private LocalDateTime updatedAt;
 }

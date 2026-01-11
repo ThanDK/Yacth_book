@@ -3,9 +3,11 @@ import { useState } from 'react';
 import { formatDateThai } from '../utils/date.utils';
 import { Modal, YachtForm, DateOverrideForm } from '../components/common';
 import { useToast } from '../contexts/ToastContext';
+import { useConfirm } from '../contexts/ConfirmContext';
 
 export default function YachtSettings({ yachts, bookings, addYacht, updateYacht, deleteYacht }) {
     const { success, error } = useToast();
+    const confirm = useConfirm();
     // Yacht modal state
     const [isYachtModalOpen, setIsYachtModalOpen] = useState(false);
     const [editingYacht, setEditingYacht] = useState(null);
@@ -35,11 +37,18 @@ export default function YachtSettings({ yachts, bookings, addYacht, updateYacht,
         setIsYachtModalOpen(false);
     };
 
-    const handleDelete = async (id) => {
-        if (confirm('คุณต้องการลบเรือลำนี้หรือไม่?')) {
-            const result = await deleteYacht(id); // Ensure we await if the prop is async
+    const handleDelete = async (id, yachtName) => {
+        const confirmed = await confirm({
+            title: 'ลบเรือ',
+            message: `คุณต้องการลบ "${yachtName}" หรือไม่?`,
+            confirmText: 'ลบ',
+            cancelText: 'ยกเลิก',
+            type: 'danger'
+        });
+
+        if (confirmed) {
+            const result = await deleteYacht(id);
             if (result && !result.success) {
-                // If the hook returned a specific logic error (like "has bookings")
                 error(result.message);
             }
         }
@@ -106,11 +115,21 @@ export default function YachtSettings({ yachts, bookings, addYacht, updateYacht,
                         {/* Header */}
                         <div className="flex items-start justify-between mb-4">
                             <div className="flex items-center gap-3">
-                                <div className="w-12 h-12 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-xl flex items-center justify-center">
-                                    <span className="text-2xl">🚤</span>
+                                <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${yacht.yachtType === 'FRACTIONAL'
+                                    ? 'bg-gradient-to-br from-purple-100 to-indigo-100'
+                                    : 'bg-gradient-to-br from-blue-100 to-indigo-100'
+                                    }`}>
+                                    <span className="text-2xl">{yacht.yachtType === 'FRACTIONAL' ? '🔒' : '🚤'}</span>
                                 </div>
                                 <div>
-                                    <h3 className="font-semibold text-slate-900">{yacht.name}</h3>
+                                    <div className="flex items-center gap-2">
+                                        <h3 className="font-semibold text-slate-900">{yacht.name}</h3>
+                                        {yacht.yachtType === 'FRACTIONAL' && (
+                                            <span className="px-2 py-0.5 bg-purple-100 text-purple-700 rounded-full text-xs font-medium">
+                                                Fractional
+                                            </span>
+                                        )}
+                                    </div>
                                     <p className="text-xs text-slate-500">{yacht.capacity} ที่นั่ง</p>
                                 </div>
                             </div>
@@ -121,7 +140,7 @@ export default function YachtSettings({ yachts, bookings, addYacht, updateYacht,
                                 <button onClick={() => openAddOverride(yacht)} className="p-2 text-slate-400 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-colors" title="เพิ่มรอบพิเศษ">
                                     📅
                                 </button>
-                                <button onClick={() => handleDelete(yacht.id)} className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="ลบ">
+                                <button onClick={() => handleDelete(yacht.id, yacht.name)} className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="ลบ">
                                     🗑️
                                 </button>
                             </div>

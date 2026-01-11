@@ -1,7 +1,7 @@
 // ===== BOOKING CALENDAR PAGE =====
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { STATUS_CONFIG } from '../config/app.config';
+import { STATUS_CONFIG, CALENDAR_MODE_CONFIG } from '../config/app.config';
 import { MonthYearPicker } from '../components/common';
 import {
     THAI_MONTHS,
@@ -15,11 +15,23 @@ import {
     getFirstDayOfMonth
 } from '../utils/date.utils';
 
-export default function BookingCalendar({ yachts, bookings, getBookingsForDate }) {
+export default function BookingCalendar({ yachts, bookings, getBookingsForDate, calendarMode }) {
     const navigate = useNavigate();
     const [currentDate, setCurrentDate] = useState(new Date());
+
+    // Get current mode theme config
+    const modeConfig = CALENDAR_MODE_CONFIG[calendarMode] || CALENDAR_MODE_CONFIG.regular;
     const [popup, setPopup] = useState({ date: null, bookings: [], position: 'bottom' });
     const [showMonthPicker, setShowMonthPicker] = useState(false);
+
+    // Get yacht IDs for filtering bookings
+    const yachtIds = yachts.map(y => y.id);
+
+    // Filter bookings to only include those from filtered yachts
+    const getFilteredBookingsForDate = (date) => {
+        const allBookings = getBookingsForDate(date);
+        return allBookings.filter(b => yachtIds.includes(b.yachtId));
+    };
 
     // Ref for dropdown container (trigger + popup)
     const dropdownRef = useRef(null);
@@ -75,7 +87,7 @@ export default function BookingCalendar({ yachts, bookings, getBookingsForDate }
         const spaceBelow = window.innerHeight - rect.bottom;
         const position = spaceBelow < 300 ? 'top' : 'bottom';
 
-        const dayBookings = getBookingsForDate(date).filter(b => b.status !== 'CANCELLED');
+        const dayBookings = getFilteredBookingsForDate(date).filter(b => b.status !== 'CANCELLED');
         setPopup({ date, bookings: dayBookings, position });
     };
 
@@ -106,8 +118,20 @@ export default function BookingCalendar({ yachts, bookings, getBookingsForDate }
             {/* Header */}
             <div className="flex items-center justify-between relative z-20">
                 <div>
-                    <h2 className="text-2xl font-bold text-slate-900">ปฏิทินจอง</h2>
-                    <p className="text-sm text-slate-500">คลิก 1 ครั้ง = ดูย่อ • ดับเบิลคลิก = ดูเต็ม</p>
+                    <div className="flex items-center gap-3">
+                        <h2 className="text-2xl font-bold text-slate-900">ปฏิทินจอง</h2>
+                        {calendarMode === 'fractional' && (
+                            <span className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm font-medium">
+                                🔒 Fractional
+                            </span>
+                        )}
+                    </div>
+                    <p className="text-sm text-slate-500">
+                        {calendarMode === 'fractional'
+                            ? `แสดงเฉพาะเรือ Fractional • ${yachts.length} ลำ`
+                            : 'คลิก 1 ครั้ง = ดูย่อ • ดับเบิลคลิก = ดูเต็ม'
+                        }
+                    </p>
                 </div>
                 <button onClick={() => { setCurrentDate(new Date()); closePopup(); }} className="px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 rounded-xl hover:bg-blue-100 transition">
                     วันนี้
@@ -116,17 +140,20 @@ export default function BookingCalendar({ yachts, bookings, getBookingsForDate }
 
             <div className="bg-white rounded-2xl shadow-sm border border-slate-200">
                 {/* Month/Year Navigation */}
-                <div className="flex items-center justify-between px-6 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-t-2xl relative z-30">
+                <div className={`flex items-center justify-between px-6 py-4 rounded-t-2xl relative z-30 bg-gradient-to-r ${modeConfig.gradient}`}>
                     <button onClick={() => changeMonth(-1)} className="w-10 h-10 flex items-center justify-center rounded-xl bg-white/20 text-white hover:bg-white/30 transition">◀</button>
 
                     {/* Dropdown container - ref wraps both trigger and popup */}
                     <div ref={dropdownRef} className="relative">
                         <button
-                            onClick={() => setShowMonthPicker(prev => !prev)}
+                            onClick={() => {
+                                closePopup(); // Close day popup first
+                                setShowMonthPicker(prev => !prev);
+                            }}
                             className="text-center px-4 py-1 rounded-lg hover:bg-white/20 transition-colors cursor-pointer"
                         >
                             <h3 className="text-xl font-bold text-white">{THAI_MONTHS[month]}</h3>
-                            <p className="text-blue-100 text-sm">{year + 543} ▼</p>
+                            <p className={`text-sm ${modeConfig.subtitleColor}`}>{year + 543} ▼</p>
                         </button>
 
                         {/* Dropdown popup */}
@@ -155,7 +182,7 @@ export default function BookingCalendar({ yachts, bookings, getBookingsForDate }
                 {/* Calendar Grid */}
                 <div className="grid grid-cols-7 relative">
                     {calendarDays.map((item, index) => {
-                        const dayBookings = getBookingsForDate(item.date);
+                        const dayBookings = getFilteredBookingsForDate(item.date);
                         const activeBookings = dayBookings.filter(b => b.status !== 'CANCELLED');
                         const todayCheck = isToday(item.date);
                         const past = isPast(item.date);
@@ -225,7 +252,7 @@ export default function BookingCalendar({ yachts, bookings, getBookingsForDate }
                                         }}
                                         onClick={(e) => e.stopPropagation()}
                                     >
-                                        <div className="flex items-center justify-between px-4 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-t-2xl">
+                                        <div className={`flex items-center justify-between px-4 py-3 text-white rounded-t-2xl bg-gradient-to-r ${modeConfig.gradient}`}>
                                             <div>
                                                 <p className="text-xs opacity-90">{THAI_DAYS_FULL[item.date.getDay()]}</p>
                                                 <p className="font-bold">{formatDateThai(item.date)}</p>
@@ -239,9 +266,12 @@ export default function BookingCalendar({ yachts, bookings, getBookingsForDate }
                                             {popup.bookings.length === 0 ? (
                                                 <div className="text-center py-4">
                                                     <p className="text-4xl mb-2">📅</p>
-                                                    <p className="text-slate-500 text-sm">วันนี้ว่างครับ</p>
+                                                    <p className="text-slate-500 text-sm">วันนี้ว่าง</p>
                                                     {!isPast(item.date) && (
-                                                        <button onClick={() => navigate(`/day/${toDateString(item.date)}`)} className="mt-3 w-full py-2 bg-blue-50 text-blue-600 rounded-xl text-sm font-medium hover:bg-blue-100 transition">
+                                                        <button
+                                                            onClick={() => navigate(`/day/${toDateString(item.date)}`)}
+                                                            className={`mt-3 w-full py-2 rounded-xl text-sm font-medium transition ${modeConfig.bgLight} ${modeConfig.textColor} ${modeConfig.hoverBg}`}
+                                                        >
                                                             + จองเลย
                                                         </button>
                                                     )}

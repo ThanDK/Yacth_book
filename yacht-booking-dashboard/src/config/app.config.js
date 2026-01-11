@@ -149,3 +149,45 @@ export const NAV_ITEMS = [
     { path: '/yachts', label: 'ตั้งค่า', icon: '⚙️' }
 ];
 
+// ===== SAVED USERS NAV =====
+export const SAVED_USERS_PATH = '/users';
+
+// ===== CALENDAR MODE CONFIGURATION =====
+export const CALENDAR_MODE_CONFIG = {
+    regular: {
+        label: 'Regular',
+        icon: '🚤',
+        gradient: 'from-blue-600 to-indigo-600',
+        bgLight: 'bg-blue-50',
+        textColor: 'text-blue-600',
+        hoverBg: 'hover:bg-blue-100',
+        buttonBg: 'bg-blue-600',
+        subtitleColor: 'text-blue-100'
+    },
+    fractional: {
+        label: 'Fractional',
+        icon: '🔒',
+        gradient: 'from-purple-600 to-indigo-600',
+        bgLight: 'bg-purple-50',
+        textColor: 'text-purple-600',
+        hoverBg: 'hover:bg-purple-100',
+        buttonBg: 'bg-purple-600',
+        subtitleColor: 'text-purple-100'
+    }
+};
+
+// ===== USER TYPE CONFIGURATION =====
+export const USER_TYPE_CONFIG = {
+    REGULAR: {
+        label: 'Regular',
+        icon: '🚤',
+        bgLight: 'bg-blue-50',
+        textColor: 'text-blue-600'
+    },
+    FRACTIONAL: {
+        label: 'Fractional',
+        icon: '🔒',
+        bgLight: 'bg-purple-50',
+        textColor: 'text-purple-600'
+    }
+};

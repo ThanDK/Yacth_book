@@ -21,37 +21,37 @@ import java.time.LocalDateTime;
 public class Booking {
     @Id
     private String id;
-    
+
     private String bookingId; // e.g., "YB-2026-0001"
-    
+
     private String yachtId;
     private String yachtName;
-    
+
     // Slot Details (Snapshot at booking time)
     private String slotId;
     private String slotLabel;
     private String slotStart;
     private String slotEnd;
-    
+
     private LocalDate serviceDate;
-    
+
     private String customerName;
     private String phone;
     private String email;
-    
+
     private BookingStatus status;
     private boolean emailSent;
-    
+
     private String notes;
     private String cancelReason;
-    
+
     // Reward/Voucher info
     private String rewardId;
     private String tokenTxTime;
-    
+
     @CreatedDate
     private LocalDateTime createdAt;
-    
+
     @LastModifiedDate
     private LocalDateTime updatedAt;
 }
