@@ -331,22 +331,19 @@ export default function BookingDetailModal({
                         >
                             {getEditSlots()
                                 .filter(s => {
-                                    const isBooked = !onCheckSlotAvailable(editForm.yachtId, editForm.serviceDate, s.id, localBooking.id);
-                                    const isCurrentSlot = localBooking.yachtId === editForm.yachtId &&
-                                        localBooking.slotId === s.id &&
-                                        toDateString(localBooking.serviceDate) === editForm.serviceDate;
-                                    return !isBooked || isCurrentSlot;
+                                    // Always show the current slot so selection doesn't break
+                                    if (s.id === localBooking.slotId && editForm.yachtId === localBooking.yachtId && editForm.serviceDate === toDateString(localBooking.serviceDate)) {
+                                        return true;
+                                    }
+                                    // Otherwise only show available slots
+                                    return onCheckSlotAvailable(editForm.yachtId, editForm.serviceDate, s.id, localBooking.id);
                                 })
-                                .map(s => {
-                                    const isCurrentSlot = localBooking.yachtId === editForm.yachtId &&
-                                        localBooking.slotId === s.id &&
-                                        toDateString(localBooking.serviceDate) === editForm.serviceDate;
-                                    return (
-                                        <option key={s.id} value={s.id}>
-                                            {s.start}-{s.end} ({s.label}) {isCurrentSlot ? '📍 รอบปัจจุบัน' : '✅ ว่าง'}
-                                        </option>
-                                    );
-                                })}
+                                .map(s => (
+                                    <option key={s.id} value={s.id}>
+                                        {s.start}-{s.end} ({s.label})
+                                    </option>
+                                ))
+                            }
                         </select>
                     </div>
                     {getSwapMessage()}
