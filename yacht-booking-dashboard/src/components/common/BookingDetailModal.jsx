@@ -329,14 +329,24 @@ export default function BookingDetailModal({
                             onChange={e => handleEditChange('slotId', e.target.value)}
                             className="w-full px-3 py-2 border border-indigo-200 rounded-lg text-sm focus:border-indigo-500 outline-none font-medium"
                         >
-                            {getEditSlots().map(s => {
-                                const isBooked = !onCheckSlotAvailable(editForm.yachtId, editForm.serviceDate, s.id, localBooking.id);
-                                return (
-                                    <option key={s.id} value={s.id} disabled={isBooked}>
-                                        {s.start}-{s.end} ({s.label}) {isBooked ? '❌ ถูกจองแล้ว' : '✅'}
-                                    </option>
-                                );
-                            })}
+                            {getEditSlots()
+                                .filter(s => {
+                                    const isBooked = !onCheckSlotAvailable(editForm.yachtId, editForm.serviceDate, s.id, localBooking.id);
+                                    const isCurrentSlot = localBooking.yachtId === editForm.yachtId &&
+                                        localBooking.slotId === s.id &&
+                                        toDateString(localBooking.serviceDate) === editForm.serviceDate;
+                                    return !isBooked || isCurrentSlot;
+                                })
+                                .map(s => {
+                                    const isCurrentSlot = localBooking.yachtId === editForm.yachtId &&
+                                        localBooking.slotId === s.id &&
+                                        toDateString(localBooking.serviceDate) === editForm.serviceDate;
+                                    return (
+                                        <option key={s.id} value={s.id}>
+                                            {s.start}-{s.end} ({s.label}) {isCurrentSlot ? '📍 รอบปัจจุบัน' : '✅ ว่าง'}
+                                        </option>
+                                    );
+                                })}
                         </select>
                     </div>
                     {getSwapMessage()}
