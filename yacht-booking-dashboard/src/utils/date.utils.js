@@ -12,12 +12,21 @@ export const THAI_DAYS_FULL = ['อาทิตย์', 'จันทร์', '�
 /**
  * Format date to Thai Buddhist calendar string
  * @param {Date|string} date 
+ * @param {boolean} showTime - Whether to show time
  * @returns {string}
  */
-export const formatDateThai = (date) => {
+export const formatDateThai = (date, showTime = false) => {
     if (!date) return '-';
     const d = new Date(date);
-    return `${d.getDate()} ${THAI_MONTHS[d.getMonth()]} ${d.getFullYear() + 543}`;
+    const dateStr = `${d.getDate()} ${THAI_MONTHS[d.getMonth()]} ${d.getFullYear() + 543}`;
+
+    if (showTime) {
+        const hours = String(d.getHours()).padStart(2, '0');
+        const minutes = String(d.getMinutes()).padStart(2, '0');
+        return `${dateStr} ${hours}:${minutes}`;
+    }
+
+    return dateStr;
 };
 
 /**

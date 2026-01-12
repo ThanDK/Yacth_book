@@ -215,6 +215,7 @@ export default function BookingCalendar({ yachts, bookings, getBookingsForDate, 
                                 <div className={`w-7 h-7 flex items-center justify-center rounded-full text-sm font-medium mb-1
                                     ${todayCheck ? 'bg-blue-600 text-white' : ''}
                                     ${hasOverride && !todayCheck ? 'bg-purple-100 text-purple-700 font-bold ring-1 ring-purple-300' : ''}
+                                    ${hasOverride && todayCheck ? 'ring-2 ring-purple-300 ring-offset-1 font-bold' : ''}
                                     ${!item.isCurrentMonth ? 'text-slate-400' : 'text-slate-700'}
                                     ${index % 7 === 0 && item.isCurrentMonth && !todayCheck ? 'text-red-500' : ''}
                                     ${index % 7 === 6 && item.isCurrentMonth && !todayCheck ? 'text-blue-500' : ''}`}>
@@ -292,6 +293,7 @@ export default function BookingCalendar({ yachts, bookings, getBookingsForDate, 
                                                                 <p>📞 {book.phone}</p>
                                                                 <p>📧 {book.email}</p>
                                                                 <p className="font-mono text-blue-600">ID: {book.rewardId}</p>
+                                                                <p className="text-slate-400 mt-1">🕒 จอง: {formatDateThai(book.createdAt, true)}</p>
                                                             </div>
                                                         </div>
                                                     ))}

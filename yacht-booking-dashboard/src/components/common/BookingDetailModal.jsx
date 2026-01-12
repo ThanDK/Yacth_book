@@ -8,6 +8,8 @@ import { getSlotsForDate } from '../../utils/booking.utils';
 import { useToast } from '../../contexts/ToastContext';
 import Modal from './Modal';
 import StatusSelector from './StatusSelector';
+import EditableDate from './EditableDate';
+import { useConfirm } from '../../contexts/ConfirmContext';
 
 export default function BookingDetailModal({
     isOpen,
@@ -15,6 +17,7 @@ export default function BookingDetailModal({
     booking,
     yachts = [],
     onUpdateBooking,
+    onDeleteBooking,
     onCheckSlotAvailable = () => true
 }) {
     // Edit form state
@@ -25,6 +28,7 @@ export default function BookingDetailModal({
 
     // Toast notifications
     const toast = useToast();
+    const confirm = useConfirm();
 
     // Get active yachts
     const activeYachts = yachts.filter(y => y.isActive);
@@ -46,12 +50,13 @@ export default function BookingDetailModal({
                 notes: booking.notes || '',
                 yachtId: booking.yachtId,
                 slotId: booking.slotId,
-                serviceDate: serviceDateStr
+                serviceDate: serviceDateStr,
+                createdAt: booking.createdAt || new Date() // Add createdAt to form
             });
             setHasChanges(false);
             setCancelReason('');
         }
-    }, [booking]);
+    }, [booking, isOpen]);
 
     // Get slots for selected yacht on selected date (FIXED: now respects dateOverrides)
     const getEditSlots = () => {
@@ -125,7 +130,8 @@ export default function BookingDetailModal({
             slotLabel: slot?.label || '',
             slotStart: slot?.start || '',
             slotEnd: slot?.end || '',
-            serviceDate: new Date(editForm.serviceDate)
+            serviceDate: new Date(editForm.serviceDate),
+            createdAt: new Date(editForm.createdAt) // Include updated createdAt
         };
 
         onUpdateBooking(localBooking.id, updates);
@@ -187,10 +193,23 @@ export default function BookingDetailModal({
         <Modal
             isOpen={isOpen}
             onClose={onClose}
-            title={localBooking.customerName}
-            subtitle={localBooking.bookingId}
+            title={localBooking?.customerName}
+            subtitle={localBooking?.bookingId}
         >
             <div className="space-y-4">
+                {/* HEAD INFO: CREATED AT - CLEANER EDIT UI (SOFT CODED) */}
+                <div className="flex justify-between items-end px-1">
+                    <div>
+                        <p className="text-xl font-bold text-slate-900">{localBooking?.customerName}</p>
+                        <p className="text-sm text-slate-500 font-mono">{localBooking?.bookingId}</p>
+                    </div>
+                    <EditableDate
+                        label="จองเมื่อ"
+                        date={editForm.createdAt || localBooking?.createdAt}
+                        onChange={(newDate) => handleEditChange('createdAt', newDate)}
+                    />
+                </div>
+
                 {/* 1️⃣ STATUS BANNER */}
                 <div className={`flex items-center gap-4 p-4 rounded-xl border ${statusConfig.bgLight} ${statusConfig.borderColor}`}>
                     <span className="text-3xl">{statusConfig.icon}</span>
@@ -277,7 +296,7 @@ export default function BookingDetailModal({
                         🔄 เปลี่ยนเรือ / รอบ
                     </p>
                     <div>
-                        <label className="text-xs text-slate-500">วันใช้เรือ</label>
+                        <label className="text-xs text-slate-500">📅 วันที่เข้าใช้บริการ</label>
                         <input
                             type="date"
                             value={editForm.serviceDate || ''}
@@ -292,9 +311,15 @@ export default function BookingDetailModal({
                             onChange={e => handleEditChange('yachtId', e.target.value)}
                             className="w-full px-3 py-2 border border-indigo-200 rounded-lg text-sm focus:border-indigo-500 outline-none font-medium"
                         >
-                            {activeYachts.map(y => (
-                                <option key={y.id} value={y.id}>🚤 {y.name} ({y.timeSlots?.length || 0} รอบ)</option>
-                            ))}
+                            {activeYachts.map(y => {
+                                const date = editForm.serviceDate ? new Date(editForm.serviceDate) : new Date();
+                                const dynamicSlots = getSlotsForDate(y, date);
+                                return (
+                                    <option key={y.id} value={y.id}>
+                                        🚤 {y.name} ({dynamicSlots.length} รอบ)
+                                    </option>
+                                );
+                            })}
                         </select>
                     </div>
                     <div>
@@ -363,6 +388,30 @@ export default function BookingDetailModal({
                     <div className="p-3 bg-red-50 rounded-lg border border-red-100">
                         <p className="text-xs text-red-600 font-bold">เหตุผลที่ยกเลิก:</p>
                         <p className="text-sm text-red-800">{localBooking.cancelReason}</p>
+                    </div>
+                )}
+                {/* Delete Zone */}
+                {onDeleteBooking && (
+                    <div className="pt-4 border-t border-slate-100 mt-2">
+                        <button
+                            onClick={async () => {
+                                const isConfirmed = await confirm({
+                                    title: 'ยืนยันลบการจอง',
+                                    message: `ต้องการลบการจองของ "${localBooking.customerName}" หรือไม่? (ไม่สามารถกู้คืนได้)`,
+                                    confirmText: 'ลบทันที',
+                                    cancelText: 'ยกเลิก',
+                                    type: 'danger'
+                                });
+
+                                if (isConfirmed) {
+                                    onDeleteBooking(localBooking.id);
+                                    onClose();
+                                }
+                            }}
+                            className="w-full py-2 bg-white text-slate-400 border border-slate-200 rounded-xl text-xs hover:text-red-500 hover:border-red-200 hover:bg-red-50 transition"
+                        >
+                            🗑️ ลบข้อมูล (Trash)
+                        </button>
                     </div>
                 )}
             </div>

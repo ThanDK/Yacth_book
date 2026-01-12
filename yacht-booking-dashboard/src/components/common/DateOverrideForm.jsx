@@ -5,7 +5,7 @@ import { DEFAULT_VALUES } from '../../config/app.config';
 import { formatDateThai } from '../../utils/date.utils';
 import { useToast } from '../../contexts/ToastContext';
 
-export default function DateOverrideForm({ yacht, initialDate = '', onSubmit, onCancel }) {
+export default function DateOverrideForm({ yacht, initialDate = '', onSubmit, onCancel, isDateLocked = false }) {
     const toast = useToast();
     const [overrideDate, setOverrideDate] = useState(initialDate);
     const [overrideSlots, setOverrideSlots] = useState([]);
@@ -86,7 +86,8 @@ export default function DateOverrideForm({ yacht, initialDate = '', onSubmit, on
                     type="date"
                     value={overrideDate}
                     onChange={(e) => setOverrideDate(e.target.value)}
-                    className="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                    disabled={isDateLocked}
+                    className={`w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all ${isDateLocked ? 'bg-slate-100 text-slate-500 cursor-not-allowed' : ''}`}
                 />
             </div>
 

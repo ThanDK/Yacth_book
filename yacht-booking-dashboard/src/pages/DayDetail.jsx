@@ -4,11 +4,12 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { STATUS_CONFIG } from '../config/app.config';
 import { THAI_DAYS_FULL, formatDateThai } from '../utils/date.utils';
 import { getSlotsForDate } from '../utils/booking.utils';
-import { BookingDetailModal } from '../components/common';
+// ADDED: Import YachtForm
+import { BookingDetailModal, DateOverrideForm, YachtForm, Modal } from '../components/common';
 import { useToast } from '../contexts/ToastContext';
 import { savedUserService } from '../services';
 
-export default function DayDetail({ yachts, addBooking, updateBooking, getBookingsForDate, isSlotBooked, calendarMode }) {
+export default function DayDetail({ yachts, addBooking, updateBooking, deleteBooking, updateYacht, getBookingsForDate, isSlotBooked, calendarMode }) {
     const { dateStr } = useParams();
     const navigate = useNavigate();
     const toast = useToast();
@@ -16,6 +17,15 @@ export default function DayDetail({ yachts, addBooking, updateBooking, getBookin
 
     const [showModal, setShowModal] = useState(false);
     const [showDetailModal, setShowDetailModal] = useState(false);
+
+    // ADDED: State for Schedule Override Modal
+    const [showOverrideModal, setShowOverrideModal] = useState(false);
+    const [overrideYacht, setOverrideYacht] = useState(null);
+
+    // ADDED: State for Default Schedule Modal
+    const [showYachtModal, setShowYachtModal] = useState(false);
+    const [editingYacht, setEditingYacht] = useState(null);
+
     const [selectedSlot, setSelectedSlot] = useState(null);
     const [selectedBooking, setSelectedBooking] = useState(null);
     const [savedUsers, setSavedUsers] = useState([]);
@@ -50,6 +60,10 @@ export default function DayDetail({ yachts, addBooking, updateBooking, getBookin
 
     const dayBookings = getBookingsForDate(selectedDate);
     const activeBookings = dayBookings.filter(b => !['CANCELLED'].includes(b.status));
+
+    // Filter active yachts. If in fractional mode, this should probably filter by type too, 
+    // but the parent component passes pre-filtered yachts based on mode.
+    // We double check simply to be safe or just use `yachts` prop directly.
     const activeYachts = yachts.filter(y => y.isActive);
 
     // Check if slot is available for swap (excluding current booking)
@@ -84,10 +98,16 @@ export default function DayDetail({ yachts, addBooking, updateBooking, getBookin
     const openNewBooking = (yacht, slot) => {
         setSelectedSlot({ yacht, slot });
         setSelectedUserId('');
+        const now = new Date();
+        // Adjust to local timezone ISO string for input
+        const pad = (n) => String(n).padStart(2, '0');
+        const dateTimeStr = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}`;
+
         setForm({
-            bookingDate: new Date().toISOString().split('T')[0],
+            bookingDate: dateTimeStr,
             serviceDate: selectedDate.toISOString().split('T')[0],
             customerName: '',
+            phone: '',
             phone: '',
             email: '',
             rewardId: '',
@@ -97,6 +117,36 @@ export default function DayDetail({ yachts, addBooking, updateBooking, getBookin
         });
         setErrors({});
         setShowModal(true);
+    };
+
+    // ADDED: Open schedule override modal
+    const openOverrideModal = (yacht) => {
+        setOverrideYacht(yacht);
+        setShowOverrideModal(true);
+    };
+
+    // ADDED: Open default schedule modal
+    const openYachtModal = (yacht) => {
+        setEditingYacht(yacht);
+        setShowYachtModal(true);
+    };
+
+    // ADDED: Handle schedule override submit
+    const handleOverrideSubmit = (updates) => {
+        if (overrideYacht) {
+            updateYacht(overrideYacht.id, updates);
+            setShowOverrideModal(false);
+            setOverrideYacht(null);
+        }
+    };
+
+    // ADDED: Handle default schedule submit
+    const handleYachtSubmit = (updates) => {
+        if (editingYacht) {
+            updateYacht(editingYacht.id, updates);
+            setShowYachtModal(false);
+            setEditingYacht(null);
+        }
     };
 
     // Validation
@@ -188,11 +238,31 @@ export default function DayDetail({ yachts, addBooking, updateBooking, getBookin
 
                     return (
                         <div key={yacht.id} className="border-b border-slate-100 last:border-0">
-                            <div className="px-6 py-3 bg-slate-50/50 flex items-center gap-2">
-                                <span className="text-xl">🚤</span>
-                                <span className="font-semibold text-slate-700">{yacht.name}</span>
-                                <span className="text-xs text-slate-400">({slotsForDate.length} รอบ)</span>
-                                {hasOverride && <span className="text-xs px-2 py-0.5 bg-purple-100 text-purple-600 rounded-full">📅 ตารางเฉพาะวัน</span>}
+                            <div className="px-6 py-3 bg-slate-50/50 flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                    <span className="text-xl">🚤</span>
+                                    <span className="font-semibold text-slate-700">{yacht.name}</span>
+                                    <span className="text-xs text-slate-400">({slotsForDate.length} รอบ)</span>
+                                    {hasOverride && <span className="text-xs px-2 py-0.5 bg-purple-100 text-purple-600 rounded-full">📅 ตารางเฉพาะวัน</span>}
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    {/* ADDED: Button to manage default schedule */}
+                                    <button
+                                        onClick={() => openYachtModal(yacht)}
+                                        className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition text-xs flex items-center gap-1"
+                                        title="แก้ไขรอบเวลาปกติ"
+                                    >
+                                        <span>🕓</span> รอบปกติ
+                                    </button>
+                                    {/* ADDED: Button to manage schedule */}
+                                    <button
+                                        onClick={() => openOverrideModal(yacht)}
+                                        className="p-1.5 text-slate-400 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition text-xs flex items-center gap-1"
+                                        title="จัดการตารางเดินเรือของวันนี้"
+                                    >
+                                        <span>📅</span> เฉพาะวัน
+                                    </button>
+                                </div>
                             </div>
                             <div className="px-6 py-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                                 {slotsForDate.map(slot => {
@@ -205,6 +275,7 @@ export default function DayDetail({ yachts, addBooking, updateBooking, getBookin
                                                     <div>
                                                         <p className="font-bold text-slate-900">{booking.customerName}</p>
                                                         <p className="text-xs text-slate-600 font-mono">ID: {booking.rewardId}</p>
+                                                        <p className="text-xs text-slate-400 mt-0.5">🕒 จอง: {formatDateThai(booking.createdAt, true)}</p>
                                                     </div>
                                                     <span className="text-xl">{STATUS_CONFIG[booking.status].icon}</span>
                                                 </div>
@@ -245,8 +316,13 @@ export default function DayDetail({ yachts, addBooking, updateBooking, getBookin
                             {/* Dates */}
                             <div className="grid grid-cols-2 gap-4 p-4 bg-slate-50 rounded-xl border border-slate-200">
                                 <div>
-                                    <label className="block text-xs font-bold text-slate-700 mb-1">วันที่จอง</label>
-                                    <input type="date" value={form.bookingDate} onChange={e => setForm(f => ({ ...f, bookingDate: e.target.value }))} className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm" />
+                                    <label className="block text-xs font-bold text-slate-700 mb-1">วัน-เวลาที่จอง</label>
+                                    <input
+                                        type="datetime-local"
+                                        value={form.bookingDate}
+                                        onChange={e => setForm(f => ({ ...f, bookingDate: e.target.value }))}
+                                        className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm"
+                                    />
                                 </div>
                                 <div>
                                     <label className="block text-xs font-bold text-slate-700 mb-1">วันใช้เรือ</label>
@@ -328,15 +404,46 @@ export default function DayDetail({ yachts, addBooking, updateBooking, getBookin
                 </div>
             )}
 
-            {/* BOOKING DETAIL MODAL - Using reusable component */}
+            {/* BOOKING DETAIL MODAL */}
             <BookingDetailModal
                 isOpen={showDetailModal && !!selectedBooking}
                 onClose={() => setShowDetailModal(false)}
                 booking={selectedBooking}
                 yachts={yachts}
                 onUpdateBooking={updateBooking}
+                onDeleteBooking={deleteBooking}
                 onCheckSlotAvailable={checkSlotAvailable}
             />
+
+            {/* ADDED: ALLOW OVERRIDE SCHEDULE FROM DAY DETAIL */}
+            <Modal
+                isOpen={showOverrideModal}
+                onClose={() => setShowOverrideModal(false)}
+                title="📅 จัดการตารางเรือวันนี้"
+                subtitle={`${overrideYacht?.name || ''} - ${formatDateThai(selectedDate)}`}
+            >
+                <DateOverrideForm
+                    yacht={overrideYacht}
+                    initialDate={dateStr}
+                    isDateLocked={true}
+                    onSubmit={handleOverrideSubmit}
+                    onCancel={() => setShowOverrideModal(false)}
+                />
+            </Modal>
+
+            {/* ADDED: YACHT EDIT MODAL (FOR DEFAULT SLOTS) */}
+            <Modal
+                isOpen={showYachtModal}
+                onClose={() => setShowYachtModal(false)}
+                title="🕓 แก้ไขรอบเวลาปกติ"
+                subtitle={editingYacht?.name || ''}
+            >
+                <YachtForm
+                    yacht={editingYacht}
+                    onSubmit={handleYachtSubmit}
+                    onCancel={() => setShowYachtModal(false)}
+                />
+            </Modal>
         </div>
     );
 }

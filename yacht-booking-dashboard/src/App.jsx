@@ -94,6 +94,8 @@ function App() {
                 addBooking={addBooking}
                 updateBooking={updateBooking}
                 deleteBooking={deleteBooking}
+                // NEW: Allow updating yacht schedule from day detail
+                updateYacht={updateYacht}
                 getBookingsForDate={getBookingsForDate}
                 getAvailableSlots={getAvailableSlots}
                 isSlotBooked={isSlotBooked}

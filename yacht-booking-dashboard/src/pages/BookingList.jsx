@@ -6,7 +6,7 @@ import { exportBookingsToExcel } from '../utils/export.utils';
 import { StatusBadge, BookingDetailModal, DateRangePicker } from '../components/common';
 import { useBookingFilter } from '../hooks/useBookingFilter';
 
-export default function BookingList({ bookings, yachts, updateBooking }) {
+export default function BookingList({ bookings, yachts, updateBooking, deleteBooking }) {
     const {
         search, setSearch,
         statusFilter, setStatusFilter,
@@ -164,8 +164,8 @@ export default function BookingList({ bookings, yachts, updateBooking }) {
                             <tr className="bg-slate-50 border-b border-slate-200 text-xs font-semibold text-slate-500 uppercase">
                                 <th className="px-4 py-4">ID</th>
                                 <th className="px-4 py-4">ลูกค้า / ติดต่อ</th>
-                                <th className="px-4 py-4">Reward ID</th>
-                                <th className="px-4 py-4">เรือ / เวลา</th>
+                                <th className="px-4 py-4">Reward ID / เวลาทำรายการ</th>
+                                <th className="px-4 py-4">เรือ / วันใช้บริการ</th>
                                 <th className="px-4 py-4 text-center">สถานะ</th>
                                 <th className="px-4 py-4 text-center">Email</th>
                                 <th className="px-4 py-4 text-right">จัดการ</th>
@@ -174,7 +174,12 @@ export default function BookingList({ bookings, yachts, updateBooking }) {
                         <tbody className="divide-y divide-slate-100">
                             {dateFilteredBookings.map(booking => (
                                 <tr key={booking.id} className="hover:bg-slate-50/50">
-                                    <td className="px-4 py-4 font-mono text-xs text-slate-500">{booking.bookingId}</td>
+                                    <td className="px-4 py-4 font-mono text-xs text-slate-500">
+                                        {booking.bookingId}
+                                        <div className="mt-1 text-[10px] text-slate-400">
+                                            จอง: {formatDateThai(booking.createdAt)}
+                                        </div>
+                                    </td>
                                     <td className="px-4 py-4">
                                         <p className="font-medium text-slate-900">{booking.customerName}</p>
                                         <p className="text-xs text-slate-500">{booking.phone}</p>
@@ -182,11 +187,12 @@ export default function BookingList({ bookings, yachts, updateBooking }) {
                                     </td>
                                     <td className="px-4 py-4">
                                         <span className="inline-block px-2 py-1 bg-blue-50 rounded text-xs font-mono font-medium text-blue-600">{booking.rewardId || '-'}</span>
-                                        {booking.tokenTxTime && <p className="text-[10px] text-slate-400 mt-1">TX: {booking.tokenTxTime}</p>}
+                                        {booking.tokenTxTime && <p className="text-[10px] text-slate-400 mt-1">Tx: {booking.tokenTxTime}</p>}
                                     </td>
                                     <td className="px-4 py-4">
                                         <p className="text-sm font-medium text-slate-700">{booking.yachtName}</p>
-                                        <p className="text-xs text-slate-500">{formatDateThai(booking.serviceDate)} • {booking.slotStart}-{booking.slotEnd}</p>
+                                        <p className="text-xs text-slate-500">ใช้: {formatDateThai(booking.serviceDate)}</p>
+                                        <p className="text-xs text-slate-500">เวลา: {booking.slotStart}-{booking.slotEnd}</p>
                                     </td>
                                     <td className="px-4 py-4 text-center">
                                         <StatusBadge status={booking.status} size="sm" />
@@ -220,6 +226,7 @@ export default function BookingList({ bookings, yachts, updateBooking }) {
                 booking={selectedBooking}
                 yachts={yachts}
                 onUpdateBooking={updateBooking}
+                onDeleteBooking={deleteBooking}
                 onCheckSlotAvailable={checkSlotAvailable}
             />
         </div>
