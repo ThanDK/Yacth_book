@@ -294,6 +294,30 @@ export default function DayDetail({ yachts, addBooking, updateBooking, deleteBoo
                                         </div>
                                     );
                                 })}
+
+                                {/* SHOW ORPHANED BOOKINGS (Bookings that don't match any slot anymore) */}
+                                {dayBookings
+                                    .filter(b => b.yachtId === yacht.id && b.status !== 'CANCELLED' && !slotsForDate.some(s => s.id === b.slotId))
+                                    .map(booking => (
+                                        <div key={booking.id} onClick={() => openDetail(booking)} className={`p-4 rounded-xl border-2 border-dashed cursor-pointer hover:shadow-md transition bg-red-50 border-red-200`}>
+                                            <div className="flex justify-between items-start mb-2">
+                                                <div>
+                                                    <div className="flex items-center gap-1.5 mb-1">
+                                                        <span className="text-[10px] px-1.5 py-0.5 bg-red-100 text-red-600 rounded font-bold">⚠️ เลื่อน/เปลี่ยนรอบ</span>
+                                                        <p className="font-bold text-slate-900">{booking.customerName}</p>
+                                                    </div>
+                                                    <p className="text-xs text-slate-600 font-mono">ID: {booking.rewardId}</p>
+                                                    <p className="text-xs text-slate-400 mt-0.5">🕒 จอง: {formatDateThai(booking.createdAt, true)}</p>
+                                                </div>
+                                                <span className="text-xl">{STATUS_CONFIG[booking.status].icon}</span>
+                                            </div>
+                                            <div className="pt-2 border-t border-red-100 text-xs text-red-500 flex justify-between italic">
+                                                <span>รอบเดิม: {booking.slotStart || '?'}-{booking.slotEnd || '?'}</span>
+                                                <span>(ไม่พบในตารางปัจจุบัน)</span>
+                                            </div>
+                                        </div>
+                                    ))
+                                }
                             </div>
                         </div>
                     );
