@@ -16,13 +16,16 @@ export default function BookingList({ bookings, yachts, updateBooking, deleteBoo
 
     // Date range filter state
     const [dateRange, setDateRange] = useState({ from: null, to: null });
+    const [dateFilterType, setDateFilterType] = useState('SERVICE_DATE'); // 'SERVICE_DATE' or 'BOOKING_DATE'
     const [selectedBooking, setSelectedBooking] = useState(null);
 
     // Apply date range filter on top of other filters
     const dateFilteredBookings = filtered.filter(b => {
         if (!dateRange.from) return true;
-        const serviceDate = new Date(b.serviceDate);
-        const dateOnly = new Date(serviceDate.getFullYear(), serviceDate.getMonth(), serviceDate.getDate());
+
+        const targetDate = dateFilterType === 'SERVICE_DATE' ? b.serviceDate : b.createdAt;
+        const dateObj = new Date(targetDate);
+        const dateOnly = new Date(dateObj.getFullYear(), dateObj.getMonth(), dateObj.getDate());
         const fromDate = new Date(dateRange.from.getFullYear(), dateRange.from.getMonth(), dateRange.from.getDate());
 
         if (dateRange.to) {
@@ -84,13 +87,26 @@ export default function BookingList({ bookings, yachts, updateBooking, deleteBoo
                 </div>
 
                 {/* Date Range Picker */}
-                <div className="lg:w-64">
-                    <label className="block text-xs font-medium text-slate-500 mb-1">ช่วงวันที่</label>
-                    <DateRangePicker
-                        range={dateRange}
-                        onRangeChange={setDateRange}
-                        placeholder="ทุกวัน"
-                    />
+                <div className="lg:w-auto flex gap-2">
+                    <div className="w-32">
+                        <label className="block text-xs font-medium text-slate-500 mb-1">ประเภทวันที่</label>
+                        <select
+                            value={dateFilterType}
+                            onChange={e => setDateFilterType(e.target.value)}
+                            className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm"
+                        >
+                            <option value="SERVICE_DATE">วันที่ใช้บริการ</option>
+                            <option value="BOOKING_DATE">วันที่จอง</option>
+                        </select>
+                    </div>
+                    <div className="lg:w-64">
+                        <label className="block text-xs font-medium text-slate-500 mb-1">ช่วงวันที่</label>
+                        <DateRangePicker
+                            range={dateRange}
+                            onRangeChange={setDateRange}
+                            placeholder="ทุกวัน"
+                        />
+                    </div>
                 </div>
 
                 {/* Status Filter */}
@@ -128,7 +144,7 @@ export default function BookingList({ bookings, yachts, updateBooking, deleteBoo
                     <span className="text-slate-500">ตัวกรองที่ใช้:</span>
                     {dateRange.from && (
                         <span className="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-700 rounded-full">
-                            📅 {formatDateThai(dateRange.from)}
+                            {dateFilterType === 'SERVICE_DATE' ? '📅 ใช้:' : '📝 จอง:'} {formatDateThai(dateRange.from)}
                             {dateRange.to && dateRange.to.getTime() !== dateRange.from.getTime() && (
                                 <> - {formatDateThai(dateRange.to)}</>
                             )}
