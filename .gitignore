@@ -1,0 +1,25 @@
+# Secrets
+.env
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Dependencies
+node_modules/
+target/
+
+# IDEs
+.idea/
+.vscode/
+*.iml
+
+# Build
+dist/
+build/
+*.class
+*.jar
+*.war
+
+# Logs
+*.log
