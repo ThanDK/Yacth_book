@@ -45,8 +45,8 @@ export default function YachtForm({ yacht, onSubmit, onCancel }) {
             setError('กรุณาใส่เวลาเริ่มและสิ้นสุด');
             return;
         }
-        if (newSlot.start >= newSlot.end) {
-            setError('เวลาสิ้นสุดต้องมากกว่าเวลาเริ่ม');
+        if (newSlot.start === newSlot.end) {
+            setError('เวลาเริ่มต้นและสิ้นสุดต้องไม่เท่ากัน');
             return;
         }
 
@@ -225,7 +225,7 @@ export default function YachtForm({ yacht, onSubmit, onCancel }) {
                     {formData.timeSlots.map(slot => (
                         <div key={slot.id} className="flex items-center justify-between p-3 bg-blue-50 rounded-xl">
                             <div>
-                                <span className="font-semibold text-blue-700">{slot.start} - {slot.end}</span>
+                                <span className="font-semibold text-blue-700">{slot.start} - {slot.end} {slot.start > slot.end && <span className="text-[10px] bg-indigo-100 text-indigo-600 px-1 rounded ml-1">+1 วัน</span>}</span>
                                 {slot.label && <span className="text-blue-500 text-sm ml-2">({slot.label})</span>}
                             </div>
                             <button

@@ -5,7 +5,7 @@ import { DEFAULT_VALUES } from '../../config/app.config';
 import { formatDateThai } from '../../utils/date.utils';
 import { useToast } from '../../contexts/ToastContext';
 
-export default function DateOverrideForm({ yacht, initialDate = '', onSubmit, onCancel, isDateLocked = false }) {
+export default function DateOverrideForm({ yacht, initialDate = '', onSubmit, onCancel }) {
     const toast = useToast();
     const [overrideDate, setOverrideDate] = useState(initialDate);
     const [overrideSlots, setOverrideSlots] = useState([]);
@@ -33,7 +33,7 @@ export default function DateOverrideForm({ yacht, initialDate = '', onSubmit, on
 
     const addSlot = () => {
         if (!newSlot.start || !newSlot.end) return;
-        if (newSlot.start >= newSlot.end) return;
+        if (newSlot.start === newSlot.end) return;
 
         const slot = {
             id: `override-${Date.now()}`,
@@ -86,8 +86,7 @@ export default function DateOverrideForm({ yacht, initialDate = '', onSubmit, on
                     type="date"
                     value={overrideDate}
                     onChange={(e) => setOverrideDate(e.target.value)}
-                    disabled={isDateLocked}
-                    className={`w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all ${isDateLocked ? 'bg-slate-100 text-slate-500 cursor-not-allowed' : ''}`}
+                    className="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
                 />
             </div>
 
@@ -143,7 +142,7 @@ export default function DateOverrideForm({ yacht, initialDate = '', onSubmit, on
                             overrideSlots.map(slot => (
                                 <div key={slot.id} className="flex items-center justify-between p-3 bg-purple-50 rounded-xl">
                                     <div>
-                                        <span className="font-semibold text-purple-700">{slot.start} - {slot.end}</span>
+                                        <span className="font-semibold text-purple-700">{slot.start} - {slot.end} {slot.start > slot.end && <span className="text-[10px] bg-purple-100 text-purple-600 px-1 rounded ml-1">+1 วัน</span>}</span>
                                         {slot.label && <span className="text-purple-500 text-sm ml-2">({slot.label})</span>}
                                     </div>
                                     <button
