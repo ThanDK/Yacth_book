@@ -236,7 +236,7 @@ export default function BookingDetailModal({
                 {/* EDITABLE: Customer Info */}
                 <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-3">
                     <p className="text-xs font-bold text-slate-500 uppercase">{UI_TEXT.customerInfo}</p>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                         <div>
                             <label className="text-xs text-slate-400">{UI_TEXT.customerName}</label>
                             <input
@@ -269,7 +269,7 @@ export default function BookingDetailModal({
                 </div>
 
                 {/* EDITABLE: Reward & Token */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     <div className="p-3 bg-blue-50 rounded-lg border border-blue-100">
                         <label className="text-xs text-blue-600 font-bold">{UI_TEXT.rewardId}</label>
                         <input
