@@ -332,7 +332,7 @@ export default function DayDetail({ yachts, addBooking, updateBooking, deleteBoo
 
                         <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4">
                             {/* Dates */}
-                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 p-4 bg-slate-50 rounded-xl border border-slate-200">
+                            <div className="grid grid-cols-1 gap-4 p-4 bg-slate-50 rounded-xl border border-slate-200">
                                 <div>
                                     <label className="block text-xs font-bold text-slate-700 mb-1">{UI_TEXT.bookingDateTime}</label>
                                     <input
@@ -388,7 +388,7 @@ export default function DayDetail({ yachts, addBooking, updateBooking, deleteBoo
                             </div>
 
                             {/* Phone & Email */}
-                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                            <div className="grid grid-cols-1 gap-4">
                                 <div>
                                     <label className="block text-xs font-bold text-slate-700 mb-1">{UI_TEXT.phone} <span className="text-red-500">*</span></label>
                                     <input type="tel" value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} placeholder="08x-xxx-xxxx" className={`w-full px-3 py-2 border rounded-lg ${errors.phone ? 'border-red-500' : 'border-slate-300'}`} />
@@ -400,7 +400,7 @@ export default function DayDetail({ yachts, addBooking, updateBooking, deleteBoo
                             </div>
 
                             {/* Reward ID & Token Time */}
-                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                            <div className="grid grid-cols-1 gap-4">
                                 <div>
                                     <label className="block text-xs font-bold text-slate-700 mb-1">{UI_TEXT.rewardId} <span className="text-red-500">*</span></label>
                                     <input type="text" value={form.rewardId} onChange={e => setForm(f => ({ ...f, rewardId: e.target.value }))} placeholder="Token ID" className={`w-full px-3 py-2 border rounded-lg font-mono ${errors.rewardId ? 'border-red-500' : 'border-slate-300'}`} />
