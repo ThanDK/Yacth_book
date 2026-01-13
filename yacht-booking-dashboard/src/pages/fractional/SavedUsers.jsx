@@ -134,61 +134,63 @@ export default function SavedUsers() {
 
             {/* Table */}
             <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-                <table className="w-full">
-                    <thead className="bg-slate-50 border-b border-slate-100">
-                        <tr>
-                            <th className="text-left px-6 py-4 text-sm font-semibold text-slate-600">รหัส</th>
-                            <th className="text-left px-6 py-4 text-sm font-semibold text-slate-600">ชื่อ</th>
-                            <th className="text-left px-6 py-4 text-sm font-semibold text-slate-600">ติดต่อ</th>
-                            <th className="text-left px-6 py-4 text-sm font-semibold text-slate-600">ประเภท</th>
-                            <th className="text-right px-6 py-4 text-sm font-semibold text-slate-600">จัดการ</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {users.length === 0 ? (
+                <div className="overflow-x-auto">
+                    <table className="w-full min-w-[800px]">
+                        <thead className="bg-slate-50 border-b border-slate-100">
                             <tr>
-                                <td colSpan="5" className="text-center py-12 text-slate-500">
-                                    <p className="text-4xl mb-2">👥</p>
-                                    <p>No saved users yet</p>
-                                </td>
+                                <th className="text-left px-6 py-4 text-sm font-semibold text-slate-600">รหัส</th>
+                                <th className="text-left px-6 py-4 text-sm font-semibold text-slate-600">ชื่อ</th>
+                                <th className="text-left px-6 py-4 text-sm font-semibold text-slate-600">ติดต่อ</th>
+                                <th className="text-left px-6 py-4 text-sm font-semibold text-slate-600">ประเภท</th>
+                                <th className="text-right px-6 py-4 text-sm font-semibold text-slate-600">จัดการ</th>
                             </tr>
-                        ) : (
-                            users.map(user => (
-                                <tr key={user.id} className="border-b border-slate-50 hover:bg-slate-50/50 transition">
-                                    <td className="px-6 py-4">
-                                        <span className="font-mono text-sm text-blue-600">{user.userId}</span>
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        <p className="font-medium text-slate-900">{user.name}</p>
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        <p className="text-sm text-slate-600">{user.phone}</p>
-                                        <p className="text-sm text-slate-400">{user.email}</p>
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        <span className={`px-3 py-1 rounded-lg text-sm font-medium ${USER_TYPE_CONFIG[user.userType]?.bgLight} ${USER_TYPE_CONFIG[user.userType]?.textColor}`}>
-                                            {USER_TYPE_CONFIG[user.userType]?.icon} {USER_TYPE_CONFIG[user.userType]?.label}
-                                        </span>
-                                    </td>
-                                    <td className="px-6 py-4 text-right">
-                                        <button
-                                            onClick={() => handleEdit(user)}
-                                            className="px-3 py-1 text-sm text-blue-600 hover:bg-blue-50 rounded-lg transition mr-2"
-                                        >
-                                            แก้ไข
-                                        </button>
-                                        <button
-                                            onClick={() => handleDelete(user.id, user.name)}
-                                            className="px-3 py-1 text-sm text-red-600 hover:bg-red-50 rounded-lg transition"
-                                        >
-                                            ลบ
-                                        </button>
+                        </thead>
+                        <tbody>
+                            {users.length === 0 ? (
+                                <tr>
+                                    <td colSpan="5" className="text-center py-12 text-slate-500">
+                                        <p className="text-4xl mb-2">👥</p>
+                                        <p>No saved users yet</p>
                                     </td>
                                 </tr>
-                            ))
-                        )}
-                    </tbody>
-                </table>
+                            ) : (
+                                users.map(user => (
+                                    <tr key={user.id} className="border-b border-slate-50 hover:bg-slate-50/50 transition">
+                                        <td className="px-6 py-4">
+                                            <span className="font-mono text-sm text-blue-600">{user.userId}</span>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <p className="font-medium text-slate-900">{user.name}</p>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <p className="text-sm text-slate-600">{user.phone}</p>
+                                            <p className="text-sm text-slate-400">{user.email}</p>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <span className={`px-3 py-1 rounded-lg text-sm font-medium ${USER_TYPE_CONFIG[user.userType]?.bgLight} ${USER_TYPE_CONFIG[user.userType]?.textColor}`}>
+                                                {USER_TYPE_CONFIG[user.userType]?.icon} {USER_TYPE_CONFIG[user.userType]?.label}
+                                            </span>
+                                        </td>
+                                        <td className="px-6 py-4 text-right">
+                                            <button
+                                                onClick={() => handleEdit(user)}
+                                                className="px-3 py-1 text-sm text-blue-600 hover:bg-blue-50 rounded-lg transition mr-2"
+                                            >
+                                                แก้ไข
+                                            </button>
+                                            <button
+                                                onClick={() => handleDelete(user.id, user.name)}
+                                                className="px-3 py-1 text-sm text-red-600 hover:bg-red-50 rounded-lg transition"
+                                            >
+                                                ลบ
+                                            </button>
+                                        </td>
+                                    </tr>
+                                ))
+                            )}
+                        </tbody>
+                    </table>
+                </div>
             </div>
 
             {/* Modal */}

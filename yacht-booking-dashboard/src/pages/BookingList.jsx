@@ -173,10 +173,10 @@ export default function BookingList({ bookings, yachts, updateBooking, deleteBoo
                 </div>
             )}
 
-            {/* Table */}
+            {/* Booking Table (Scrollable on mobile) */}
             <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
                 <div className="overflow-x-auto">
-                    <table className="w-full text-left">
+                    <table className="w-full text-left min-w-[1000px]"> {/* Added min-w to force scroll on small screens if needed */}
                         <thead>
                             <tr className="bg-slate-50 border-b border-slate-200 text-xs font-semibold text-slate-500 uppercase">
                                 <th className="px-4 py-4">ID</th>

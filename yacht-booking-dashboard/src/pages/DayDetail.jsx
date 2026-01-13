@@ -102,7 +102,7 @@ export default function DayDetail({ yachts, addBooking, updateBooking, deleteBoo
             serviceDate: selectedDate.toISOString().split('T')[0],
             customerName: '',
             phone: '',
-            phone: '',
+
             email: '',
             rewardId: '',
             emailSent: false,
@@ -194,7 +194,7 @@ export default function DayDetail({ yachts, addBooking, updateBooking, deleteBoo
     return (
         <div className="space-y-6">
             {/* Header */}
-            <div className="flex items-center gap-4">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
                 <button onClick={() => navigate('/')} className="w-10 h-10 flex items-center justify-center rounded-xl bg-slate-100 text-slate-600 hover:bg-slate-200 transition">←</button>
                 <div>
                     <p className="text-sm text-slate-500">{THAI_DAYS_FULL[selectedDate.getDay()]}</p>
@@ -203,24 +203,24 @@ export default function DayDetail({ yachts, addBooking, updateBooking, deleteBoo
             </div>
 
             {/* Stats */}
-            <div className="grid grid-cols-3 gap-4">
-                <div className="bg-white rounded-xl p-4 border border-slate-200 text-center">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="bg-white rounded-xl p-4 border border-slate-200 text-center shadow-sm">
                     <p className="text-3xl font-bold text-blue-600">{activeBookings.length}</p>
                     <p className="text-sm text-slate-500">{UI_TEXT.totalBookings}</p>
                 </div>
-                <div className="bg-white rounded-xl p-4 border border-slate-200 text-center">
+                <div className="bg-white rounded-xl p-4 border border-slate-200 text-center shadow-sm">
                     <p className="text-3xl font-bold text-amber-500">{activeBookings.filter(b => ['PENDING', 'PROCESSING'].includes(b.status)).length}</p>
                     <p className="text-sm text-slate-500">{UI_TEXT.pendingQueue}</p>
                 </div>
-                <div className="bg-white rounded-xl p-4 border border-slate-200 text-center">
+                <div className="bg-white rounded-xl p-4 border border-slate-200 text-center shadow-sm">
                     <p className="text-3xl font-bold text-emerald-500">{activeBookings.filter(b => b.status === 'CONFIRMED').length}</p>
                     <p className="text-sm text-slate-500">{UI_TEXT.confirmed}</p>
                 </div>
             </div>
 
             {/* Yacht Slots */}
-            <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
-                <div className="px-6 py-4 bg-slate-50 border-b border-slate-200">
+            <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
+                <div className="px-4 sm:px-6 py-4 bg-slate-50 border-b border-slate-200">
                     <h3 className="font-bold text-slate-800">{UI_TEXT.yachtSchedule}</h3>
                 </div>
 
@@ -232,14 +232,14 @@ export default function DayDetail({ yachts, addBooking, updateBooking, deleteBoo
 
                     return (
                         <div key={yacht.id} className="border-b border-slate-100 last:border-0">
-                            <div className="px-6 py-3 bg-slate-50/50 flex items-center justify-between">
+                            <div className="px-4 sm:px-6 py-3 bg-slate-50/50 flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-0">
                                 <div className="flex items-center gap-2">
                                     <span className="text-xl">🚤</span>
                                     <span className="font-semibold text-slate-700">{yacht.name}</span>
                                     <span className="text-xs text-slate-400">({slotsForDate.length} รอบ)</span>
                                     {hasOverride && <span className="text-xs px-2 py-0.5 bg-purple-100 text-purple-600 rounded-full">📅 ตารางเฉพาะวัน</span>}
                                 </div>
-                                <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-2 self-start sm:self-auto">
                                     {/* ADDED: Button to manage default schedule */}
                                     <button
                                         onClick={() => openYachtModal(yacht)}
@@ -258,7 +258,7 @@ export default function DayDetail({ yachts, addBooking, updateBooking, deleteBoo
                                     </button>
                                 </div>
                             </div>
-                            <div className="px-6 py-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                            <div className="p-4 sm:px-6 sm:py-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                                 {slotsForDate.map(slot => {
                                     const booking = dayBookings.find(b => b.yachtId === yacht.id && b.slotId === slot.id && b.status !== 'CANCELLED');
 
@@ -282,8 +282,8 @@ export default function DayDetail({ yachts, addBooking, updateBooking, deleteBoo
                                     }
 
                                     return (
-                                        <div key={slot.id} onClick={() => openNewBooking(yacht, slot)} className="h-24 rounded-xl border-2 border-dashed border-slate-300 flex flex-col items-center justify-center gap-1 cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition text-slate-400 hover:text-blue-500">
-                                            <span className="text-2xl font-light">+</span>
+                                        <div key={slot.id} onClick={() => openNewBooking(yacht, slot)} className="h-20 sm:h-24 rounded-xl border-2 border-dashed border-slate-300 flex flex-col items-center justify-center gap-1 cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition text-slate-400 hover:text-blue-500">
+                                            <span className="text-xl sm:text-2xl font-light">+</span>
                                             <span className="text-xs font-medium">{slot.start}-{slot.end}</span>
                                         </div>
                                     );
@@ -322,7 +322,7 @@ export default function DayDetail({ yachts, addBooking, updateBooking, deleteBoo
             {showModal && selectedSlot && (
                 <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4">
                     <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl max-h-[90vh] overflow-y-auto">
-                        <div className="px-6 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-t-2xl flex justify-between items-center">
+                        <div className="px-6 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-t-2xl flex justify-between items-center sticky top-0 z-10">
                             <div>
                                 <h3 className="font-bold text-lg">{UI_TEXT.newBookingTitle}</h3>
                                 <p className="text-sm opacity-90">{selectedSlot.yacht.name} • {selectedSlot.slot.start}-{selectedSlot.slot.end}</p>
@@ -330,9 +330,9 @@ export default function DayDetail({ yachts, addBooking, updateBooking, deleteBoo
                             <button onClick={() => setShowModal(false)} className="text-white/80 hover:text-white text-2xl">×</button>
                         </div>
 
-                        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+                        <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4">
                             {/* Dates */}
-                            <div className="grid grid-cols-2 gap-4 p-4 bg-slate-50 rounded-xl border border-slate-200">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 bg-slate-50 rounded-xl border border-slate-200">
                                 <div>
                                     <label className="block text-xs font-bold text-slate-700 mb-1">{UI_TEXT.bookingDateTime}</label>
                                     <input
@@ -388,7 +388,7 @@ export default function DayDetail({ yachts, addBooking, updateBooking, deleteBoo
                             </div>
 
                             {/* Phone & Email */}
-                            <div className="grid grid-cols-2 gap-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-xs font-bold text-slate-700 mb-1">{UI_TEXT.phone} <span className="text-red-500">*</span></label>
                                     <input type="tel" value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} placeholder="08x-xxx-xxxx" className={`w-full px-3 py-2 border rounded-lg ${errors.phone ? 'border-red-500' : 'border-slate-300'}`} />
@@ -400,7 +400,7 @@ export default function DayDetail({ yachts, addBooking, updateBooking, deleteBoo
                             </div>
 
                             {/* Reward ID & Token Time */}
-                            <div className="grid grid-cols-2 gap-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-xs font-bold text-slate-700 mb-1">{UI_TEXT.rewardId} <span className="text-red-500">*</span></label>
                                     <input type="text" value={form.rewardId} onChange={e => setForm(f => ({ ...f, rewardId: e.target.value }))} placeholder="Token ID" className={`w-full px-3 py-2 border rounded-lg font-mono ${errors.rewardId ? 'border-red-500' : 'border-slate-300'}`} />

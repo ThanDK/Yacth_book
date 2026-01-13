@@ -97,7 +97,7 @@ export default function DateOverrideForm({ yacht, initialDate = '', onSubmit, on
                         <p className="text-xs font-bold text-purple-600 mb-3">
                             เพิ่มรอบเวลาสำหรับ {formatDateThai(new Date(overrideDate))}
                         </p>
-                        <div className="grid grid-cols-3 gap-2 mb-2">
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-2">
                             <div>
                                 <label className="block text-xs text-slate-500 mb-1">เริ่ม</label>
                                 <input

@@ -22,7 +22,7 @@ export default function Modal({ isOpen, onClose, title, subtitle, children, foot
                 )}
 
                 {/* Content - Scrollable with hidden scrollbar */}
-                <div className="p-6 overflow-y-auto flex-1" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+                <div className="p-4 sm:p-6 overflow-y-auto flex-1" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
                     <style>{`.modal-content::-webkit-scrollbar { display: none; }`}</style>
                     {children}
                 </div>

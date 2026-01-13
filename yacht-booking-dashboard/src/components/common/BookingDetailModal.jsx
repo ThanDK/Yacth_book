@@ -198,7 +198,7 @@ export default function BookingDetailModal({
         >
             <div className="space-y-4">
                 {/* HEAD INFO: CREATED AT - CLEANER EDIT UI (SOFT CODED) */}
-                <div className="flex justify-between items-end px-1">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end px-1 gap-2 sm:gap-0">
                     <div>
                         <p className="text-xl font-bold text-slate-900">{localBooking?.customerName}</p>
                         <p className="text-sm text-slate-500 font-mono">{localBooking?.bookingId}</p>
@@ -211,7 +211,7 @@ export default function BookingDetailModal({
                 </div>
 
                 {/* 1️⃣ STATUS BANNER */}
-                <div className={`flex items-center gap-4 p-4 rounded-xl border ${statusConfig.bgLight} ${statusConfig.borderColor}`}>
+                <div className={`flex flex-col sm:flex-row items-center gap-2 sm:gap-4 p-4 rounded-xl border ${statusConfig.bgLight} ${statusConfig.borderColor} text-center sm:text-left`}>
                     <span className="text-3xl">{statusConfig.icon}</span>
                     <p className={`font-bold text-lg ${statusConfig.textColor}`}>{statusConfig.label}</p>
                 </div>
@@ -236,7 +236,7 @@ export default function BookingDetailModal({
                 {/* EDITABLE: Customer Info */}
                 <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-3">
                     <p className="text-xs font-bold text-slate-500 uppercase">{UI_TEXT.customerInfo}</p>
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div>
                             <label className="text-xs text-slate-400">{UI_TEXT.customerName}</label>
                             <input
@@ -269,7 +269,7 @@ export default function BookingDetailModal({
                 </div>
 
                 {/* EDITABLE: Reward & Token */}
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div className="p-3 bg-blue-50 rounded-lg border border-blue-100">
                         <label className="text-xs text-blue-600 font-bold">{UI_TEXT.rewardId}</label>
                         <input
