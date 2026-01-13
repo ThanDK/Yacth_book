@@ -68,11 +68,15 @@ export default function DayDetail({ yachts, addBooking, updateBooking, deleteBoo
 
     // Check if slot is available for swap (excluding current booking)
     const checkSlotAvailable = (yachtId, date, slotId, currentBookingId) => {
-        const dateStr = new Date(date).toISOString().split('T')[0];
-        return !dayBookings.some(b =>
+        const targetDate = new Date(date);
+        const targetDateStr = targetDate.toISOString().split('T')[0];
+        // Use the function to get bookings for the specific target date
+        const bookingsForTargetDate = getBookingsForDate(targetDate);
+
+        return !bookingsForTargetDate.some(b =>
             b.id !== currentBookingId &&
             b.yachtId === yachtId &&
-            new Date(b.serviceDate).toISOString().split('T')[0] === dateStr &&
+            new Date(b.serviceDate).toISOString().split('T')[0] === targetDateStr &&
             b.slotId === slotId &&
             b.status !== 'CANCELLED'
         );
