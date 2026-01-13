@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { formatDateThai } from '../utils/date.utils';
 import { Modal, YachtForm, DateOverrideForm } from '../components/common';
+import { UI_TEXT } from '../config/app.config';
 import { useToast } from '../contexts/ToastContext';
 import { useConfirm } from '../contexts/ConfirmContext';
 
@@ -39,10 +40,10 @@ export default function YachtSettings({ yachts, bookings, addYacht, updateYacht,
 
     const handleDelete = async (id, yachtName) => {
         const confirmed = await confirm({
-            title: 'ลบเรือ',
-            message: `คุณต้องการลบ "${yachtName}" หรือไม่?`,
-            confirmText: 'ลบ',
-            cancelText: 'ยกเลิก',
+            title: UI_TEXT.deleteYacht,
+            message: UI_TEXT.confirmDeleteYacht.replace('{name}', yachtName),
+            confirmText: UI_TEXT.delete,
+            cancelText: UI_TEXT.cancel,
             type: 'danger'
         });
 
@@ -94,14 +95,14 @@ export default function YachtSettings({ yachts, bookings, addYacht, updateYacht,
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div>
-                    <h2 className="text-2xl font-bold text-slate-900">ตั้งค่าเรือ</h2>
-                    <p className="text-slate-500 text-sm mt-1">จัดการข้อมูลเรือและรอบเวลา</p>
+                    <h2 className="text-2xl font-bold text-slate-900">{UI_TEXT.settingsTitle}</h2>
+                    <p className="text-slate-500 text-sm mt-1">{UI_TEXT.settingsSubtitle}</p>
                 </div>
                 <button
                     onClick={openAddYacht}
                     className="px-4 py-2 bg-blue-600 text-white rounded-xl font-medium text-sm hover:bg-blue-700 shadow-lg shadow-blue-500/30 transition-all flex items-center gap-2"
                 >
-                    <span>➕</span> เพิ่มเรือ
+                    <span>➕</span> {UI_TEXT.addYacht}
                 </button>
             </div>
 
@@ -130,7 +131,7 @@ export default function YachtSettings({ yachts, bookings, addYacht, updateYacht,
                                             </span>
                                         )}
                                     </div>
-                                    <p className="text-xs text-slate-500">{yacht.capacity} ที่นั่ง</p>
+                                    <p className="text-xs text-slate-500">{yacht.capacity} {UI_TEXT.capacity}</p>
                                 </div>
                             </div>
                             <div className="flex gap-1">
@@ -151,7 +152,7 @@ export default function YachtSettings({ yachts, bookings, addYacht, updateYacht,
 
                         {/* Default Time Slots */}
                         <div className="space-y-2 mb-4">
-                            <p className="text-xs font-medium text-slate-500 uppercase tracking-wide">รอบเวลาปกติ</p>
+                            <p className="text-xs font-medium text-slate-500 uppercase tracking-wide">{UI_TEXT.regularSlots}</p>
                             <div className="flex flex-wrap gap-2">
                                 {yacht.timeSlots.map(slot => (
                                     <div
@@ -168,7 +169,7 @@ export default function YachtSettings({ yachts, bookings, addYacht, updateYacht,
                         {/* Date Overrides - Clickable to edit */}
                         {yacht.dateOverrides && Object.keys(yacht.dateOverrides).length > 0 && (
                             <div className="space-y-2 mb-4">
-                                <p className="text-xs font-medium text-purple-600 uppercase tracking-wide">📅 ตารางเฉพาะวัน (คลิกเพื่อแก้ไข)</p>
+                                <p className="text-xs font-medium text-purple-600 uppercase tracking-wide">📅 {UI_TEXT.dateOverrides} ({UI_TEXT.clickToEdit})</p>
                                 <div className="space-y-1">
                                     {Object.entries(yacht.dateOverrides).map(([dateStr, slots]) => (
                                         <div
@@ -178,7 +179,7 @@ export default function YachtSettings({ yachts, bookings, addYacht, updateYacht,
                                         >
                                             <div>
                                                 <span className="text-xs font-bold text-purple-700">{formatDateThai(new Date(dateStr))}</span>
-                                                <span className="text-xs text-purple-500 ml-2">({slots.length} รอบ)</span>
+                                                <span className="text-xs text-purple-500 ml-2">({slots.length} {UI_TEXT.slot})</span>
                                             </div>
                                             <button
                                                 onClick={(e) => { e.stopPropagation(); removeOverride(yacht.id, dateStr); }}
@@ -196,10 +197,10 @@ export default function YachtSettings({ yachts, bookings, addYacht, updateYacht,
                         {/* Stats */}
                         <div className="flex items-center justify-between pt-4 border-t border-slate-100">
                             <span className={`text-xs font-medium px-2 py-1 rounded-full ${yacht.isActive ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-600'}`}>
-                                {yacht.isActive ? '🟢 เปิดใช้งาน' : '🔴 ปิดใช้งาน'}
+                                {yacht.isActive ? `🟢 ${UI_TEXT.active}` : `🔴 ${UI_TEXT.inactive}`}
                             </span>
                             <span className="text-xs text-slate-500">
-                                {getActiveBookingCount(yacht.id)} การจอง
+                                {getActiveBookingCount(yacht.id)} {UI_TEXT.bookingCount}
                             </span>
                         </div>
                     </div>
@@ -210,9 +211,9 @@ export default function YachtSettings({ yachts, bookings, addYacht, updateYacht,
             {yachts.length === 0 && (
                 <div className="text-center py-16 bg-white rounded-2xl border border-slate-200">
                     <span className="text-6xl block mb-4">🚤</span>
-                    <p className="text-slate-500 mb-4">ยังไม่มีเรือในระบบ</p>
+                    <p className="text-slate-500 mb-4">{UI_TEXT.noYachts}</p>
                     <button onClick={openAddYacht} className="px-4 py-2 bg-blue-600 text-white rounded-xl font-medium text-sm hover:bg-blue-700 transition-colors">
-                        เพิ่มเรือลำแรก
+                        {UI_TEXT.addFirstYacht}
                     </button>
                 </div>
             )}
@@ -221,7 +222,7 @@ export default function YachtSettings({ yachts, bookings, addYacht, updateYacht,
             <Modal
                 isOpen={isYachtModalOpen}
                 onClose={() => setIsYachtModalOpen(false)}
-                title={editingYacht ? '✏️ แก้ไขเรือ' : '➕ เพิ่มเรือใหม่'}
+                title={editingYacht ? `✏️ ${UI_TEXT.editYacht}` : `➕ ${UI_TEXT.addYacht}`}
                 subtitle={editingYacht?.name || ''}
             >
                 <YachtForm
@@ -235,7 +236,7 @@ export default function YachtSettings({ yachts, bookings, addYacht, updateYacht,
             <Modal
                 isOpen={isOverrideModalOpen}
                 onClose={() => setIsOverrideModalOpen(false)}
-                title={editingOverrideDate ? '✏️ แก้ไขตารางเฉพาะวัน' : '📅 ตั้งตารางเฉพาะวัน'}
+                title={editingOverrideDate ? `✏️ ${UI_TEXT.edit} ${UI_TEXT.dateOverrides}` : `📅 ${UI_TEXT.addOverride}`}
                 subtitle={overrideYacht?.name || ''}
             >
                 <DateOverrideForm

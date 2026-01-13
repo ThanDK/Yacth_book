@@ -2,7 +2,7 @@
 // Reusable modal for viewing/editing booking details
 // Used in: DayDetail, BookingList
 import { useState, useEffect } from 'react';
-import { STATUS_CONFIG } from '../../config/app.config';
+import { STATUS_CONFIG, UI_TEXT } from '../../config/app.config';
 import { formatDateThai, toDateString } from '../../utils/date.utils';
 import { getSlotsForDate } from '../../utils/booking.utils';
 import { useToast } from '../../contexts/ToastContext';
@@ -112,7 +112,7 @@ export default function BookingDetailModal({
 
         if (slotChanged) {
             if (!onCheckSlotAvailable(editForm.yachtId, editForm.serviceDate, editForm.slotId, localBooking.id)) {
-                toast.warning('รอบนี้ถูกจองแล้ว! กรุณาเลือกรอบอื่น');
+                toast.warning(UI_TEXT.slotBooked);
                 return;
             }
         }
@@ -137,13 +137,13 @@ export default function BookingDetailModal({
         onUpdateBooking(localBooking.id, updates);
         setLocalBooking(prev => ({ ...prev, ...updates }));
         setHasChanges(false);
-        toast.success('บันทึกเรียบร้อย');
+        toast.success(UI_TEXT.saveSuccess);
     };
 
     // Change status
     const changeStatus = (newStatus) => {
         if (newStatus === 'CANCELLED' && !cancelReason.trim()) {
-            toast.warning('กรุณาระบุเหตุผลที่ยกเลิก');
+            toast.warning(UI_TEXT.requireCancelReason);
             return;
         }
         const updates = { status: newStatus };
@@ -180,7 +180,7 @@ export default function BookingDetailModal({
 
         return (
             <div className="text-xs text-indigo-700 bg-indigo-100 px-3 py-2 rounded-lg">
-                ⚠️ จะย้ายจาก <b>{fromText}</b> → <b>{toText}</b>
+                {UI_TEXT.willSwap} <b>{fromText}</b> → <b>{toText}</b>
             </div>
         );
     };
@@ -204,7 +204,7 @@ export default function BookingDetailModal({
                         <p className="text-sm text-slate-500 font-mono">{localBooking?.bookingId}</p>
                     </div>
                     <EditableDate
-                        label="จองเมื่อ"
+                        label={UI_TEXT.bookedAt}
                         date={editForm.createdAt || localBooking?.createdAt}
                         onChange={(newDate) => handleEditChange('createdAt', newDate)}
                     />
@@ -218,7 +218,7 @@ export default function BookingDetailModal({
 
                 {/* 2️⃣ STATUS CHANGE */}
                 <div className="p-4 bg-slate-50 rounded-xl border border-slate-200">
-                    <p className="text-xs font-bold text-slate-600 uppercase mb-3">เปลี่ยนสถานะ</p>
+                    <p className="text-xs font-bold text-slate-600 uppercase mb-3">{UI_TEXT.changeStatus}</p>
                     <StatusSelector currentStatus={localBooking.status} onStatusChange={changeStatus} />
                 </div>
 
@@ -227,18 +227,18 @@ export default function BookingDetailModal({
                     onClick={toggleEmailStatus}
                     className={`p-3 rounded-lg border cursor-pointer transition hover:opacity-80 ${localBooking.emailSent ? 'bg-emerald-50 border-emerald-200' : 'bg-slate-50 border-slate-200'}`}
                 >
-                    <p className="text-xs font-bold">Email Confirm (คลิกเพื่อเปลี่ยน)</p>
+                    <p className="text-xs font-bold">{UI_TEXT.emailConfirm} ({UI_TEXT.clickToChange})</p>
                     <p className={`font-medium ${localBooking.emailSent ? 'text-emerald-600' : 'text-slate-400'}`}>
-                        {localBooking.emailSent ? '🟢 ส่งแล้ว' : '⚪ ยังไม่ส่ง'}
+                        {localBooking.emailSent ? `🟢 ${UI_TEXT.emailSent}` : `⚪ ${UI_TEXT.emailNotSent}`}
                     </p>
                 </div>
 
                 {/* EDITABLE: Customer Info */}
                 <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-3">
-                    <p className="text-xs font-bold text-slate-500 uppercase">ข้อมูลลูกค้า</p>
+                    <p className="text-xs font-bold text-slate-500 uppercase">{UI_TEXT.customerInfo}</p>
                     <div className="grid grid-cols-2 gap-3">
                         <div>
-                            <label className="text-xs text-slate-400">ชื่อ-นามสกุล</label>
+                            <label className="text-xs text-slate-400">{UI_TEXT.customerName}</label>
                             <input
                                 type="text"
                                 value={editForm.customerName || ''}
@@ -247,7 +247,7 @@ export default function BookingDetailModal({
                             />
                         </div>
                         <div>
-                            <label className="text-xs text-slate-400">เบอร์โทร</label>
+                            <label className="text-xs text-slate-400">{UI_TEXT.phone}</label>
                             <input
                                 type="tel"
                                 value={editForm.phone || ''}
@@ -256,7 +256,7 @@ export default function BookingDetailModal({
                             />
                         </div>
                         <div className="col-span-2">
-                            <label className="text-xs text-slate-400">อีเมล</label>
+                            <label className="text-xs text-slate-400">{UI_TEXT.email}</label>
                             <input
                                 type="email"
                                 value={editForm.email || ''}
@@ -271,7 +271,7 @@ export default function BookingDetailModal({
                 {/* EDITABLE: Reward & Token */}
                 <div className="grid grid-cols-2 gap-3">
                     <div className="p-3 bg-blue-50 rounded-lg border border-blue-100">
-                        <label className="text-xs text-blue-600 font-bold">Reward ID</label>
+                        <label className="text-xs text-blue-600 font-bold">{UI_TEXT.rewardId}</label>
                         <input
                             type="text"
                             value={editForm.rewardId || ''}
@@ -280,7 +280,7 @@ export default function BookingDetailModal({
                         />
                     </div>
                     <div className="p-3 bg-amber-50 rounded-lg border border-amber-100">
-                        <label className="text-xs text-amber-600 font-bold">เวลาเหรียญเข้า</label>
+                        <label className="text-xs text-amber-600 font-bold">{UI_TEXT.tokenTime}</label>
                         <input
                             type="time"
                             value={editForm.tokenTxTime || ''}
@@ -293,10 +293,10 @@ export default function BookingDetailModal({
                 {/* SWAP YACHT & SLOT */}
                 <div className="p-4 bg-indigo-50 rounded-xl border border-indigo-200 space-y-3">
                     <p className="text-xs font-bold text-indigo-600 uppercase flex items-center gap-2">
-                        🔄 เปลี่ยนเรือ / รอบ
+                        {UI_TEXT.swapYachtSlot}
                     </p>
                     <div>
-                        <label className="text-xs text-slate-500">📅 วันที่เข้าใช้บริการ</label>
+                        <label className="text-xs text-slate-500">{UI_TEXT.serviceDate}</label>
                         <input
                             type="date"
                             value={editForm.serviceDate || ''}
@@ -305,7 +305,7 @@ export default function BookingDetailModal({
                         />
                     </div>
                     <div>
-                        <label className="text-xs text-slate-500">เลือกเรือ</label>
+                        <label className="text-xs text-slate-500">{UI_TEXT.selectYacht}</label>
                         <select
                             value={editForm.yachtId || ''}
                             onChange={e => handleEditChange('yachtId', e.target.value)}
@@ -323,7 +323,7 @@ export default function BookingDetailModal({
                         </select>
                     </div>
                     <div>
-                        <label className="text-xs text-slate-500">เลือกรอบเวลา</label>
+                        <label className="text-xs text-slate-500">{UI_TEXT.selectSlot}</label>
                         <select
                             value={editForm.slotId || ''}
                             onChange={e => handleEditChange('slotId', e.target.value)}
@@ -351,11 +351,11 @@ export default function BookingDetailModal({
 
                 {/* Notes */}
                 <div>
-                    <label className="text-xs text-slate-500 font-bold">หมายเหตุ</label>
+                    <label className="text-xs text-slate-500 font-bold">{UI_TEXT.notes}</label>
                     <textarea
                         value={editForm.notes || ''}
                         onChange={e => handleEditChange('notes', e.target.value)}
-                        placeholder="หมายเหตุเพิ่มเติม..."
+                        placeholder={UI_TEXT.additionalNotes}
                         rows={2}
                         className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:border-blue-500 outline-none resize-none"
                     />
@@ -367,19 +367,19 @@ export default function BookingDetailModal({
                         onClick={saveAllChanges}
                         className="w-full py-3 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 transition shadow-lg"
                     >
-                        💾 บันทึกการแก้ไข
+                        {UI_TEXT.saveChanges}
                     </button>
                 )}
 
                 {/* Cancel Zone */}
                 <div className="pt-4 border-t border-red-100">
-                    <p className="text-sm font-bold text-red-600 mb-2">ยกเลิกการจอง:</p>
+                    <p className="text-sm font-bold text-red-600 mb-2">{UI_TEXT.cancelBooking}</p>
                     <div className="flex gap-2">
                         <input
                             type="text"
                             value={cancelReason}
                             onChange={e => setCancelReason(e.target.value)}
-                            placeholder="เหตุผลที่ยกเลิก..."
+                            placeholder={UI_TEXT.cancelReasonPlaceholder}
                             className="flex-1 px-3 py-2 border border-red-200 rounded-lg text-sm"
                         />
                         <button
@@ -393,7 +393,7 @@ export default function BookingDetailModal({
 
                 {localBooking.status === 'CANCELLED' && localBooking.cancelReason && (
                     <div className="p-3 bg-red-50 rounded-lg border border-red-100">
-                        <p className="text-xs text-red-600 font-bold">เหตุผลที่ยกเลิก:</p>
+                        <p className="text-xs text-red-600 font-bold">{UI_TEXT.cancelReason}</p>
                         <p className="text-sm text-red-800">{localBooking.cancelReason}</p>
                     </div>
                 )}
@@ -403,10 +403,10 @@ export default function BookingDetailModal({
                         <button
                             onClick={async () => {
                                 const isConfirmed = await confirm({
-                                    title: 'ยืนยันลบการจอง',
-                                    message: `ต้องการลบการจองของ "${localBooking.customerName}" หรือไม่? (ไม่สามารถกู้คืนได้)`,
-                                    confirmText: 'ลบทันที',
-                                    cancelText: 'ยกเลิก',
+                                    title: UI_TEXT.confirmDeleteBooking,
+                                    message: UI_TEXT.confirmDeleteBookingMsg.replace('{name}', localBooking.customerName),
+                                    confirmText: UI_TEXT.deleteNow,
+                                    cancelText: UI_TEXT.cancel,
                                     type: 'danger'
                                 });
 
@@ -417,7 +417,7 @@ export default function BookingDetailModal({
                             }}
                             className="w-full py-2 bg-white text-slate-400 border border-slate-200 rounded-xl text-xs hover:text-red-500 hover:border-red-200 hover:bg-red-50 transition"
                         >
-                            🗑️ ลบข้อมูล (Trash)
+                            {UI_TEXT.trashBooking}
                         </button>
                     </div>
                 )}

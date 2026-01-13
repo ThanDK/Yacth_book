@@ -1,7 +1,7 @@
 // ===== DAY DETAIL PAGE =====
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { STATUS_CONFIG } from '../config/app.config';
+import { STATUS_CONFIG, UI_TEXT } from '../config/app.config';
 import { THAI_DAYS_FULL, formatDateThai } from '../utils/date.utils';
 import { getSlotsForDate } from '../utils/booking.utils';
 // ADDED: Import YachtForm
@@ -13,7 +13,7 @@ export default function DayDetail({ yachts, addBooking, updateBooking, deleteBoo
     const { dateStr } = useParams();
     const navigate = useNavigate();
     const toast = useToast();
-    const selectedDate = new Date(dateStr);
+    const selectedDate = useMemo(() => new Date(dateStr), [dateStr]);
 
     const [showModal, setShowModal] = useState(false);
     const [showDetailModal, setShowDetailModal] = useState(false);
@@ -58,8 +58,8 @@ export default function DayDetail({ yachts, addBooking, updateBooking, deleteBoo
     });
     const [errors, setErrors] = useState({});
 
-    const dayBookings = getBookingsForDate(selectedDate);
-    const activeBookings = dayBookings.filter(b => !['CANCELLED'].includes(b.status));
+    const dayBookings = useMemo(() => getBookingsForDate(selectedDate), [getBookingsForDate, selectedDate]);
+    const activeBookings = useMemo(() => dayBookings.filter(b => !['CANCELLED'].includes(b.status)), [dayBookings]);
 
     // Filter active yachts. If in fractional mode, this should probably filter by type too, 
     // but the parent component passes pre-filtered yachts based on mode.
@@ -68,18 +68,8 @@ export default function DayDetail({ yachts, addBooking, updateBooking, deleteBoo
 
     // Check if slot is available for swap (excluding current booking)
     const checkSlotAvailable = (yachtId, date, slotId, currentBookingId) => {
-        const targetDate = new Date(date);
-        const targetDateStr = targetDate.toISOString().split('T')[0];
-        // Use the function to get bookings for the specific target date
-        const bookingsForTargetDate = getBookingsForDate(targetDate);
-
-        return !bookingsForTargetDate.some(b =>
-            b.id !== currentBookingId &&
-            b.yachtId === yachtId &&
-            new Date(b.serviceDate).toISOString().split('T')[0] === targetDateStr &&
-            b.slotId === slotId &&
-            b.status !== 'CANCELLED'
-        );
+        // Use reusable logic from hook
+        return !isSlotBooked(yachtId, date, slotId);
     };
 
     // Handle user selection - auto-fill form
@@ -216,22 +206,22 @@ export default function DayDetail({ yachts, addBooking, updateBooking, deleteBoo
             <div className="grid grid-cols-3 gap-4">
                 <div className="bg-white rounded-xl p-4 border border-slate-200 text-center">
                     <p className="text-3xl font-bold text-blue-600">{activeBookings.length}</p>
-                    <p className="text-sm text-slate-500">การจองทั้งหมด</p>
+                    <p className="text-sm text-slate-500">{UI_TEXT.totalBookings}</p>
                 </div>
                 <div className="bg-white rounded-xl p-4 border border-slate-200 text-center">
                     <p className="text-3xl font-bold text-amber-500">{activeBookings.filter(b => ['PENDING', 'PROCESSING'].includes(b.status)).length}</p>
-                    <p className="text-sm text-slate-500">รอดำเนินการ</p>
+                    <p className="text-sm text-slate-500">{UI_TEXT.pendingQueue}</p>
                 </div>
                 <div className="bg-white rounded-xl p-4 border border-slate-200 text-center">
                     <p className="text-3xl font-bold text-emerald-500">{activeBookings.filter(b => b.status === 'CONFIRMED').length}</p>
-                    <p className="text-sm text-slate-500">ยืนยันแล้ว</p>
+                    <p className="text-sm text-slate-500">{UI_TEXT.confirmed}</p>
                 </div>
             </div>
 
             {/* Yacht Slots */}
             <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
                 <div className="px-6 py-4 bg-slate-50 border-b border-slate-200">
-                    <h3 className="font-bold text-slate-800">ตารางรอบเรือ</h3>
+                    <h3 className="font-bold text-slate-800">{UI_TEXT.yachtSchedule}</h3>
                 </div>
 
                 {activeYachts.map(yacht => {
@@ -254,17 +244,17 @@ export default function DayDetail({ yachts, addBooking, updateBooking, deleteBoo
                                     <button
                                         onClick={() => openYachtModal(yacht)}
                                         className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition text-xs flex items-center gap-1"
-                                        title="แก้ไขรอบเวลาปกติ"
+                                        title={UI_TEXT.editRegularSchedule}
                                     >
-                                        <span>🕓</span> รอบปกติ
+                                        <span>🕓</span> {UI_TEXT.regularSchedule}
                                     </button>
                                     {/* ADDED: Button to manage schedule */}
                                     <button
                                         onClick={() => openOverrideModal(yacht)}
                                         className="p-1.5 text-slate-400 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition text-xs flex items-center gap-1"
-                                        title="จัดการตารางเดินเรือของวันนี้"
+                                        title={UI_TEXT.manageDailySchedule}
                                     >
-                                        <span>📅</span> เฉพาะวัน
+                                        <span>📅</span> {UI_TEXT.dailySchedule}
                                     </button>
                                 </div>
                             </div>
@@ -279,7 +269,7 @@ export default function DayDetail({ yachts, addBooking, updateBooking, deleteBoo
                                                     <div>
                                                         <p className="font-bold text-slate-900">{booking.customerName}</p>
                                                         <p className="text-xs text-slate-600 font-mono">ID: {booking.rewardId}</p>
-                                                        <p className="text-xs text-slate-400 mt-0.5">🕒 จอง: {formatDateThai(booking.createdAt, true)}</p>
+                                                        <p className="text-xs text-slate-400 mt-0.5">🕒 {UI_TEXT.booked} {formatDateThai(booking.createdAt, true)}</p>
                                                     </div>
                                                     <span className="text-xl">{STATUS_CONFIG[booking.status].icon}</span>
                                                 </div>
@@ -307,7 +297,7 @@ export default function DayDetail({ yachts, addBooking, updateBooking, deleteBoo
                                             <div className="flex justify-between items-start mb-2">
                                                 <div>
                                                     <div className="flex items-center gap-1.5 mb-1">
-                                                        <span className="text-[10px] px-1.5 py-0.5 bg-red-100 text-red-600 rounded font-bold">⚠️ เลื่อน/เปลี่ยนรอบ</span>
+                                                        <span className="text-[10px] px-1.5 py-0.5 bg-red-100 text-red-600 rounded font-bold">{UI_TEXT.reschedule}</span>
                                                         <p className="font-bold text-slate-900">{booking.customerName}</p>
                                                     </div>
                                                     <p className="text-xs text-slate-600 font-mono">ID: {booking.rewardId}</p>
@@ -316,8 +306,8 @@ export default function DayDetail({ yachts, addBooking, updateBooking, deleteBoo
                                                 <span className="text-xl">{STATUS_CONFIG[booking.status].icon}</span>
                                             </div>
                                             <div className="pt-2 border-t border-red-100 text-xs text-red-500 flex justify-between italic">
-                                                <span>รอบเดิม: {booking.slotStart || '?'}-{booking.slotEnd || '?'}</span>
-                                                <span>(ไม่พบในตารางปัจจุบัน)</span>
+                                                <span>{UI_TEXT.originalSlot}: {booking.slotStart || '?'}-{booking.slotEnd || '?'}</span>
+                                                <span>{UI_TEXT.slotMissing}</span>
                                             </div>
                                         </div>
                                     ))
@@ -334,7 +324,7 @@ export default function DayDetail({ yachts, addBooking, updateBooking, deleteBoo
                     <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl max-h-[90vh] overflow-y-auto">
                         <div className="px-6 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-t-2xl flex justify-between items-center">
                             <div>
-                                <h3 className="font-bold text-lg">📝 ลงข้อมูลการจอง</h3>
+                                <h3 className="font-bold text-lg">{UI_TEXT.newBookingTitle}</h3>
                                 <p className="text-sm opacity-90">{selectedSlot.yacht.name} • {selectedSlot.slot.start}-{selectedSlot.slot.end}</p>
                             </div>
                             <button onClick={() => setShowModal(false)} className="text-white/80 hover:text-white text-2xl">×</button>
@@ -344,7 +334,7 @@ export default function DayDetail({ yachts, addBooking, updateBooking, deleteBoo
                             {/* Dates */}
                             <div className="grid grid-cols-2 gap-4 p-4 bg-slate-50 rounded-xl border border-slate-200">
                                 <div>
-                                    <label className="block text-xs font-bold text-slate-700 mb-1">วัน-เวลาที่จอง</label>
+                                    <label className="block text-xs font-bold text-slate-700 mb-1">{UI_TEXT.bookingDateTime}</label>
                                     <input
                                         type="datetime-local"
                                         value={form.bookingDate}
@@ -353,7 +343,7 @@ export default function DayDetail({ yachts, addBooking, updateBooking, deleteBoo
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-bold text-slate-700 mb-1">วันใช้เรือ (ล็อคตามหน้าตาราง)</label>
+                                    <label className="block text-xs font-bold text-slate-700 mb-1">{UI_TEXT.lockedServiceDate}</label>
                                     <input
                                         type="date"
                                         value={form.serviceDate}
@@ -366,14 +356,14 @@ export default function DayDetail({ yachts, addBooking, updateBooking, deleteBoo
                             {/* Select Saved User */}
                             <div className="p-4 bg-purple-50 rounded-xl border border-purple-200">
                                 <label className="block text-xs font-bold text-purple-700 mb-2">
-                                    👥 เลือกจากรายชื่อที่บันทึกไว้ (หรือกรอกใหม่)
+                                    {UI_TEXT.selectSavedUser}
                                 </label>
                                 <select
                                     value={selectedUserId}
                                     onChange={(e) => handleUserSelect(e.target.value)}
                                     className="w-full px-3 py-2 border border-purple-300 rounded-lg bg-white"
                                 >
-                                    <option value="">-- กรอกข้อมูลใหม่ --</option>
+                                    <option value="">{UI_TEXT.fillNew}</option>
                                     <optgroup label="🔒 Fractional Users">
                                         {savedUsers.filter(u => u.userType === 'FRACTIONAL').map(user => (
                                             <option key={user.id} value={user.id}>
@@ -393,18 +383,18 @@ export default function DayDetail({ yachts, addBooking, updateBooking, deleteBoo
 
                             {/* Customer Name */}
                             <div>
-                                <label className="block text-xs font-bold text-slate-700 mb-1">ชื่อ-นามสกุล <span className="text-red-500">*</span></label>
+                                <label className="block text-xs font-bold text-slate-700 mb-1">{UI_TEXT.customerName} <span className="text-red-500">*</span></label>
                                 <input type="text" value={form.customerName} onChange={e => setForm(f => ({ ...f, customerName: e.target.value }))} placeholder="ชื่อลูกค้า" className={`w-full px-3 py-2 border rounded-lg ${errors.customerName ? 'border-red-500' : 'border-slate-300'}`} />
                             </div>
 
                             {/* Phone & Email */}
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-xs font-bold text-slate-700 mb-1">เบอร์โทร <span className="text-red-500">*</span></label>
+                                    <label className="block text-xs font-bold text-slate-700 mb-1">{UI_TEXT.phone} <span className="text-red-500">*</span></label>
                                     <input type="tel" value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} placeholder="08x-xxx-xxxx" className={`w-full px-3 py-2 border rounded-lg ${errors.phone ? 'border-red-500' : 'border-slate-300'}`} />
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-bold text-slate-700 mb-1">อีเมล</label>
+                                    <label className="block text-xs font-bold text-slate-700 mb-1">{UI_TEXT.email}</label>
                                     <input type="email" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} placeholder="email@example.com" className="w-full px-3 py-2 border border-slate-300 rounded-lg" />
                                 </div>
                             </div>
@@ -412,11 +402,11 @@ export default function DayDetail({ yachts, addBooking, updateBooking, deleteBoo
                             {/* Reward ID & Token Time */}
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-xs font-bold text-slate-700 mb-1">Reward ID <span className="text-red-500">*</span></label>
+                                    <label className="block text-xs font-bold text-slate-700 mb-1">{UI_TEXT.rewardId} <span className="text-red-500">*</span></label>
                                     <input type="text" value={form.rewardId} onChange={e => setForm(f => ({ ...f, rewardId: e.target.value }))} placeholder="Token ID" className={`w-full px-3 py-2 border rounded-lg font-mono ${errors.rewardId ? 'border-red-500' : 'border-slate-300'}`} />
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-bold text-slate-700 mb-1">เวลาเหรียญเข้า</label>
+                                    <label className="block text-xs font-bold text-slate-700 mb-1">{UI_TEXT.tokenTime}</label>
                                     <input type="time" value={form.tokenTxTime} onChange={e => setForm(f => ({ ...f, tokenTxTime: e.target.value }))} className="w-full px-3 py-2 border border-slate-300 rounded-lg" />
                                 </div>
                             </div>
@@ -424,13 +414,13 @@ export default function DayDetail({ yachts, addBooking, updateBooking, deleteBoo
                             {/* Email Checkbox */}
                             <div className="flex items-center gap-3 p-4 bg-blue-50 rounded-xl border border-blue-100">
                                 <input type="checkbox" id="emailSent" checked={form.emailSent} onChange={e => setForm(f => ({ ...f, emailSent: e.target.checked }))} className="w-5 h-5 text-blue-600 rounded" />
-                                <label htmlFor="emailSent" className="text-sm font-bold text-slate-700 cursor-pointer">ส่งอีเมล Confirm แล้ว</label>
+                                <label htmlFor="emailSent" className="text-sm font-bold text-slate-700 cursor-pointer">{UI_TEXT.emailConfirm}</label>
                             </div>
 
                             {/* Buttons */}
                             <div className="flex gap-3 pt-4 border-t border-slate-100">
-                                <button type="button" onClick={() => setShowModal(false)} className="flex-1 px-4 py-2 border border-slate-300 text-slate-600 rounded-xl hover:bg-slate-50 font-medium">ยกเลิก</button>
-                                <button type="submit" className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 font-medium shadow-lg">บันทึก</button>
+                                <button type="button" onClick={() => setShowModal(false)} className="flex-1 px-4 py-2 border border-slate-300 text-slate-600 rounded-xl hover:bg-slate-50 font-medium">{UI_TEXT.cancel}</button>
+                                <button type="submit" className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 font-medium shadow-lg">{UI_TEXT.save}</button>
                             </div>
                         </form>
                     </div>
@@ -452,7 +442,7 @@ export default function DayDetail({ yachts, addBooking, updateBooking, deleteBoo
             <Modal
                 isOpen={showOverrideModal}
                 onClose={() => setShowOverrideModal(false)}
-                title="📅 จัดการตารางเรือวันนี้"
+                title={UI_TEXT.manageTodaySchedule}
                 subtitle={`${overrideYacht?.name || ''} - ${formatDateThai(selectedDate)}`}
             >
                 <DateOverrideForm
@@ -468,7 +458,7 @@ export default function DayDetail({ yachts, addBooking, updateBooking, deleteBoo
             <Modal
                 isOpen={showYachtModal}
                 onClose={() => setShowYachtModal(false)}
-                title="🕓 แก้ไขรอบเวลาปกติ"
+                title={UI_TEXT.editRegularSchedule}
                 subtitle={editingYacht?.name || ''}
             >
                 <YachtForm

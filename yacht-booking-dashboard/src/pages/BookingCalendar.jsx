@@ -1,7 +1,7 @@
 // ===== BOOKING CALENDAR PAGE =====
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { STATUS_CONFIG, CALENDAR_MODE_CONFIG } from '../config/app.config';
+import { STATUS_CONFIG, CALENDAR_MODE_CONFIG, UI_TEXT } from '../config/app.config';
 import { MonthYearPicker } from '../components/common';
 import {
     THAI_MONTHS,
@@ -55,7 +55,7 @@ export default function BookingCalendar({ yachts, bookings, getBookingsForDate, 
     }, [showMonthPicker]);
 
     // Generate calendar days
-    const generateCalendarDays = () => {
+    const calendarDays = useMemo(() => {
         const daysInMonth = getDaysInMonth(year, month);
         const firstDay = getFirstDayOfMonth(year, month);
         const days = [];
@@ -75,7 +75,7 @@ export default function BookingCalendar({ yachts, bookings, getBookingsForDate, 
         }
 
         return days;
-    };
+    }, [year, month]);
 
     const handleDayClick = (date, event) => {
         if (popup.date?.toDateString() === date.toDateString()) {
@@ -109,7 +109,6 @@ export default function BookingCalendar({ yachts, bookings, getBookingsForDate, 
         closePopup();
     };
 
-    const calendarDays = generateCalendarDays();
 
     return (
         <div className="space-y-6">
@@ -119,7 +118,7 @@ export default function BookingCalendar({ yachts, bookings, getBookingsForDate, 
             <div className="flex items-center justify-between relative z-20">
                 <div>
                     <div className="flex items-center gap-3">
-                        <h2 className="text-2xl font-bold text-slate-900">ปฏิทินจอง</h2>
+                        <h2 className="text-2xl font-bold text-slate-900">{UI_TEXT.calendarTitle}</h2>
                         {calendarMode === 'fractional' && (
                             <span className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm font-medium">
                                 🔒 Fractional
@@ -128,13 +127,13 @@ export default function BookingCalendar({ yachts, bookings, getBookingsForDate, 
                     </div>
                     <p className="text-sm text-slate-500">
                         {calendarMode === 'fractional'
-                            ? `แสดงเฉพาะเรือ Fractional • ${yachts.length} ลำ`
-                            : 'คลิก 1 ครั้ง = ดูย่อ • ดับเบิลคลิก = ดูเต็ม'
+                            ? UI_TEXT.fractionalMode.replace('{count}', yachts.length)
+                            : UI_TEXT.viewShort
                         }
                     </p>
                 </div>
                 <button onClick={() => { setCurrentDate(new Date()); closePopup(); }} className="px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 rounded-xl hover:bg-blue-100 transition">
-                    วันนี้
+                    {UI_TEXT.today}
                 </button>
             </div>
 
@@ -259,7 +258,7 @@ export default function BookingCalendar({ yachts, bookings, getBookingsForDate, 
                                                 <p className="font-bold">{formatDateThai(item.date)}</p>
                                             </div>
                                             <button onClick={() => navigate(`/day/${toDateString(item.date)}`)} className="px-3 py-1 bg-white/20 hover:bg-white/30 rounded-lg text-xs font-medium transition">
-                                                ดูเต็ม →
+                                                {UI_TEXT.viewFull}
                                             </button>
                                         </div>
 
@@ -267,13 +266,13 @@ export default function BookingCalendar({ yachts, bookings, getBookingsForDate, 
                                             {popup.bookings.length === 0 ? (
                                                 <div className="text-center py-4">
                                                     <p className="text-4xl mb-2">📅</p>
-                                                    <p className="text-slate-500 text-sm">วันนี้ว่าง</p>
+                                                    <p className="text-slate-500 text-sm">{UI_TEXT.emptyDay}</p>
                                                     {!isPast(item.date) && (
                                                         <button
                                                             onClick={() => navigate(`/day/${toDateString(item.date)}`)}
                                                             className={`mt-3 w-full py-2 rounded-xl text-sm font-medium transition ${modeConfig.bgLight} ${modeConfig.textColor} ${modeConfig.hoverBg}`}
                                                         >
-                                                            + จองเลย
+                                                            {UI_TEXT.bookNow}
                                                         </button>
                                                     )}
                                                 </div>
