@@ -1,5 +1,6 @@
 // ===== BOOKING LIST PAGE =====
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { STATUS_CONFIG, UI_TEXT } from '../config/app.config';
 import { formatDateThai, toDateString } from '../utils/date.utils';
 import { getSlotsForDate } from '../utils/booking.utils';
@@ -8,17 +9,60 @@ import { StatusBadge, BookingDetailModal, DateRangePicker } from '../components/
 import { useBookingFilter } from '../hooks/useBookingFilter';
 
 export default function BookingList({ bookings, yachts, updateBooking, deleteBooking }) {
+    const [searchParams, setSearchParams] = useSearchParams();
+
     const {
         search, setSearch,
         statusFilter, setStatusFilter,
         yachtFilter, setYachtFilter,
         filteredBookings: filtered
-    } = useBookingFilter(bookings);
+    } = useBookingFilter(bookings, { syncWithURL: true });
 
     // Date range filter state
     const [dateRange, setDateRange] = useState({ from: null, to: null });
-    const [dateFilterType, setDateFilterType] = useState('SERVICE_DATE'); // 'SERVICE_DATE' or 'BOOKING_DATE'
+    const [dateFilterType, setDateFilterType] = useState('SERVICE_DATE');
     const [selectedBooking, setSelectedBooking] = useState(null);
+
+    // Sync selected booking with URL
+    const openBookingModal = useCallback((booking) => {
+        setSelectedBooking(booking);
+        setSearchParams(prev => {
+            const newParams = new URLSearchParams(prev);
+            if (booking) {
+                newParams.set('booking', booking.id);
+            } else {
+                newParams.delete('booking');
+            }
+            return newParams;
+        }, { replace: true });
+    }, [setSearchParams]);
+
+    const closeBookingModal = useCallback(() => {
+        setSelectedBooking(null);
+        setSearchParams(prev => {
+            const newParams = new URLSearchParams(prev);
+            newParams.delete('booking');
+            return newParams;
+        }, { replace: true });
+    }, [setSearchParams]);
+
+    // Restore modal from URL on mount
+    useEffect(() => {
+        const bookingId = searchParams.get('booking');
+        if (bookingId && !selectedBooking) {
+            const booking = bookings.find(b => b.id === bookingId);
+            if (booking) {
+                setSelectedBooking(booking);
+            } else {
+                // Booking not found, clean URL
+                setSearchParams(prev => {
+                    const newParams = new URLSearchParams(prev);
+                    newParams.delete('booking');
+                    return newParams;
+                }, { replace: true });
+            }
+        }
+    }, [searchParams, bookings]); // eslint-disable-line react-hooks/exhaustive-deps
 
     // Apply date range filter on top of other filters
     const dateFilteredBookings = useMemo(() => filtered.filter(b => {
@@ -234,7 +278,7 @@ export default function BookingList({ bookings, yachts, updateBooking, deleteBoo
                                             </button>
                                         </td>
                                         <td className="px-4 py-4 text-right">
-                                            <button onClick={() => setSelectedBooking(booking)} className="text-blue-600 hover:text-blue-800 text-sm font-medium">รายละเอียด</button>
+                                            <button onClick={() => openBookingModal(booking)} className="text-blue-600 hover:text-blue-800 text-sm font-medium">รายละเอียด</button>
                                         </td>
                                     </tr>
                                 );
@@ -250,13 +294,13 @@ export default function BookingList({ bookings, yachts, updateBooking, deleteBoo
             {/* BOOKING DETAIL MODAL - Using reusable component */}
             <BookingDetailModal
                 isOpen={!!selectedBooking}
-                onClose={() => setSelectedBooking(null)}
+                onClose={closeBookingModal}
                 booking={selectedBooking}
                 yachts={yachts}
                 onUpdateBooking={updateBooking}
                 onDeleteBooking={deleteBooking}
                 onCheckSlotAvailable={checkSlotAvailable}
             />
-        </div>
+        </div >
     );
 }

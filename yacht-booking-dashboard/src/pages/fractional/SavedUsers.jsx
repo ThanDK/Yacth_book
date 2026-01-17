@@ -1,6 +1,7 @@
 // ===== SAVED USERS PAGE =====
 // Simple CRUD for pre-saved customer details
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { savedUserService } from '../../services';
 import { useToast } from '../../contexts/ToastContext';
 import { useConfirm } from '../../contexts/ConfirmContext';
@@ -10,6 +11,7 @@ import { USER_TYPE_CONFIG } from '../../config/app.config';
 export default function SavedUsers() {
     const toast = useToast();
     const confirm = useConfirm();
+    const [searchParams, setSearchParams] = useSearchParams();
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
@@ -25,6 +27,39 @@ export default function SavedUsers() {
     useEffect(() => {
         fetchData();
     }, []);
+
+    // Restore modal from URL after users load
+    useEffect(() => {
+        if (loading || users.length === 0) return;
+
+        const modalParam = searchParams.get('modal');
+        const userIdParam = searchParams.get('id');
+
+        if (modalParam === 'edit' && userIdParam && !editingUser) {
+            const user = users.find(u => u.id === userIdParam);
+            if (user) {
+                setEditingUser(user);
+                setFormData({
+                    name: user.name,
+                    email: user.email,
+                    phone: user.phone,
+                    userType: user.userType,
+                    notes: user.notes || ''
+                });
+                setShowModal(true);
+            } else {
+                // User not found, clean URL
+                setSearchParams(prev => {
+                    const newParams = new URLSearchParams(prev);
+                    newParams.delete('modal');
+                    newParams.delete('id');
+                    return newParams;
+                }, { replace: true });
+            }
+        } else if (modalParam === 'add' && !showModal && !editingUser) {
+            setShowModal(true);
+        }
+    }, [loading, users, searchParams]); // eslint-disable-line react-hooks/exhaustive-deps
 
     const fetchData = async () => {
         try {
@@ -55,7 +90,7 @@ export default function SavedUsers() {
         }
     };
 
-    const handleEdit = (user) => {
+    const handleEdit = useCallback((user) => {
         setEditingUser(user);
         setFormData({
             name: user.name,
@@ -65,7 +100,23 @@ export default function SavedUsers() {
             notes: user.notes || ''
         });
         setShowModal(true);
-    };
+        // Sync with URL
+        setSearchParams(prev => {
+            const newParams = new URLSearchParams(prev);
+            newParams.set('modal', 'edit');
+            newParams.set('id', user.id);
+            return newParams;
+        }, { replace: true });
+    }, [setSearchParams]);
+
+    const handleAddNew = useCallback(() => {
+        setShowModal(true);
+        setSearchParams(prev => {
+            const newParams = new URLSearchParams(prev);
+            newParams.set('modal', 'add');
+            return newParams;
+        }, { replace: true });
+    }, [setSearchParams]);
 
     const handleDelete = async (id, userName) => {
         const confirmed = await confirm({
@@ -86,11 +137,18 @@ export default function SavedUsers() {
         }
     };
 
-    const closeModal = () => {
+    const closeModal = useCallback(() => {
         setShowModal(false);
         setEditingUser(null);
         setFormData({ name: '', email: '', phone: '', userType: 'REGULAR', notes: '' });
-    };
+        // Clear URL params
+        setSearchParams(prev => {
+            const newParams = new URLSearchParams(prev);
+            newParams.delete('modal');
+            newParams.delete('id');
+            return newParams;
+        }, { replace: true });
+    }, [setSearchParams]);
 
     if (loading) {
         return (
@@ -109,7 +167,7 @@ export default function SavedUsers() {
                     <p className="text-sm text-slate-500">Pre-saved customer info for quick booking</p>
                 </div>
                 <button
-                    onClick={() => setShowModal(true)}
+                    onClick={handleAddNew}
                     className="px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition font-medium shadow-lg shadow-blue-500/30"
                 >
                     + Add User

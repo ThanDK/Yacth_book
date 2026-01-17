@@ -1,6 +1,6 @@
 // ===== BOOKING CALENDAR PAGE =====
-import { useState, useRef, useEffect, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { STATUS_CONFIG, CALENDAR_MODE_CONFIG, UI_TEXT } from '../config/app.config';
 import { MonthYearPicker } from '../components/common';
 import {
@@ -17,7 +17,18 @@ import {
 
 export default function BookingCalendar({ yachts, bookings, getBookingsForDate, calendarMode }) {
     const navigate = useNavigate();
-    const [currentDate, setCurrentDate] = useState(new Date());
+    const [searchParams, setSearchParams] = useSearchParams();
+
+    // Read initial month/year from URL or use current date
+    const getInitialDate = () => {
+        const urlMonth = searchParams.get('month');
+        const urlYear = searchParams.get('year');
+        if (urlMonth && urlYear) {
+            return new Date(parseInt(urlYear), parseInt(urlMonth) - 1, 1);
+        }
+        return new Date();
+    };
+    const [currentDate, setCurrentDate] = useState(getInitialDate);
 
     // Get current mode theme config
     const modeConfig = CALENDAR_MODE_CONFIG[calendarMode] || CALENDAR_MODE_CONFIG.regular;
@@ -38,6 +49,35 @@ export default function BookingCalendar({ yachts, bookings, getBookingsForDate, 
 
     const year = currentDate.getFullYear();
     const month = currentDate.getMonth();
+
+    // Sync month/year to URL when date changes
+    useEffect(() => {
+        setSearchParams(prev => {
+            const newParams = new URLSearchParams(prev);
+            newParams.set('month', String(month + 1));
+            newParams.set('year', String(year));
+            return newParams;
+        }, { replace: true });
+    }, [month, year, setSearchParams]);
+
+    // Restore popup from URL on mount
+    useEffect(() => {
+        const popupDate = searchParams.get('popup');
+        if (popupDate && !popup.date) {
+            const date = new Date(popupDate);
+            if (!isNaN(date.getTime())) {
+                const dayBookings = getFilteredBookingsForDate(date).filter(b => b.status !== 'CANCELLED');
+                setPopup({ date, bookings: dayBookings, position: 'bottom' });
+            } else {
+                // Invalid date, clean URL
+                setSearchParams(prev => {
+                    const newParams = new URLSearchParams(prev);
+                    newParams.delete('popup');
+                    return newParams;
+                }, { replace: true });
+            }
+        }
+    }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
     // Close dropdown on outside click
     useEffect(() => {
@@ -77,9 +117,15 @@ export default function BookingCalendar({ yachts, bookings, getBookingsForDate, 
         return days;
     }, [year, month]);
 
-    const handleDayClick = (date, event) => {
+    const handleDayClick = useCallback((date, event) => {
         if (popup.date?.toDateString() === date.toDateString()) {
             setPopup({ date: null, bookings: [], position: 'bottom' });
+            // Remove popup from URL
+            setSearchParams(prev => {
+                const newParams = new URLSearchParams(prev);
+                newParams.delete('popup');
+                return newParams;
+            }, { replace: true });
             return;
         }
 
@@ -89,14 +135,29 @@ export default function BookingCalendar({ yachts, bookings, getBookingsForDate, 
 
         const dayBookings = getFilteredBookingsForDate(date).filter(b => b.status !== 'CANCELLED');
         setPopup({ date, bookings: dayBookings, position });
-    };
+
+        // Sync popup date to URL
+        setSearchParams(prev => {
+            const newParams = new URLSearchParams(prev);
+            newParams.set('popup', toDateString(date));
+            return newParams;
+        }, { replace: true });
+    }, [popup.date, setSearchParams, getFilteredBookingsForDate]);
 
     const handleDoubleClick = (date, e) => {
         e.stopPropagation();
         navigate(`/day/${toDateString(date)}`);
     };
 
-    const closePopup = () => setPopup({ date: null, bookings: [], position: 'bottom' });
+    const closePopup = useCallback(() => {
+        setPopup({ date: null, bookings: [], position: 'bottom' });
+        // Remove popup from URL
+        setSearchParams(prev => {
+            const newParams = new URLSearchParams(prev);
+            newParams.delete('popup');
+            return newParams;
+        }, { replace: true });
+    }, [setSearchParams]);
 
     const changeMonth = (offset) => {
         setCurrentDate(new Date(year, month + offset, 1));
@@ -112,7 +173,7 @@ export default function BookingCalendar({ yachts, bookings, getBookingsForDate, 
 
     return (
         <div className="space-y-6">
-
+            {popup.date && <div className="fixed inset-0 z-[60] bg-black/50" onClick={closePopup} />}
 
             {/* Header */}
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 relative z-30">

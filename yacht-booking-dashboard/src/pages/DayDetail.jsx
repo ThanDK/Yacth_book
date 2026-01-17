@@ -1,6 +1,6 @@
 // ===== DAY DETAIL PAGE =====
-import { useState, useEffect, useMemo } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { STATUS_CONFIG, UI_TEXT } from '../config/app.config';
 import { THAI_DAYS_FULL, formatDateThai } from '../utils/date.utils';
 import { getSlotsForDate } from '../utils/booking.utils';
@@ -9,9 +9,10 @@ import { BookingDetailModal, DateOverrideForm, YachtForm, Modal } from '../compo
 import { useToast } from '../contexts/ToastContext';
 import { savedUserService } from '../services';
 
-export default function DayDetail({ yachts, addBooking, updateBooking, deleteBooking, updateYacht, getBookingsForDate, isSlotBooked, calendarMode }) {
+export default function DayDetail({ yachts, bookings, addBooking, updateBooking, deleteBooking, updateYacht, getBookingsForDate, isSlotBooked, calendarMode }) {
     const { dateStr } = useParams();
     const navigate = useNavigate();
+    const [searchParams, setSearchParams] = useSearchParams();
     const toast = useToast();
     const selectedDate = useMemo(() => new Date(dateStr), [dateStr]);
 
@@ -43,6 +44,46 @@ export default function DayDetail({ yachts, addBooking, updateBooking, deleteBoo
         };
         fetchUsers();
     }, []);
+
+    // Restore booking modal from URL
+    useEffect(() => {
+        const bookingId = searchParams.get('booking');
+        if (bookingId && !selectedBooking && bookings) {
+            const booking = bookings.find(b => b.id === bookingId);
+            if (booking) {
+                setSelectedBooking(booking);
+                setShowDetailModal(true);
+            } else {
+                // Booking not found, clean URL
+                setSearchParams(prev => {
+                    const newParams = new URLSearchParams(prev);
+                    newParams.delete('booking');
+                    return newParams;
+                }, { replace: true });
+            }
+        }
+    }, [searchParams, bookings]); // eslint-disable-line react-hooks/exhaustive-deps
+
+    // URL-sync handlers for booking modal
+    const openBookingDetailModal = useCallback((booking) => {
+        setSelectedBooking(booking);
+        setShowDetailModal(true);
+        setSearchParams(prev => {
+            const newParams = new URLSearchParams(prev);
+            newParams.set('booking', booking.id);
+            return newParams;
+        }, { replace: true });
+    }, [setSearchParams]);
+
+    const closeBookingDetailModal = useCallback(() => {
+        setSelectedBooking(null);
+        setShowDetailModal(false);
+        setSearchParams(prev => {
+            const newParams = new URLSearchParams(prev);
+            newParams.delete('booking');
+            return newParams;
+        }, { replace: true });
+    }, [setSearchParams]);
 
     // Form state for new booking
     const [form, setForm] = useState({
@@ -187,8 +228,7 @@ export default function DayDetail({ yachts, addBooking, updateBooking, deleteBoo
 
     // View booking detail
     const openDetail = (booking) => {
-        setSelectedBooking(booking);
-        setShowDetailModal(true);
+        openBookingDetailModal(booking);
     };
 
     return (
@@ -430,7 +470,7 @@ export default function DayDetail({ yachts, addBooking, updateBooking, deleteBoo
             {/* BOOKING DETAIL MODAL */}
             <BookingDetailModal
                 isOpen={showDetailModal && !!selectedBooking}
-                onClose={() => setShowDetailModal(false)}
+                onClose={closeBookingDetailModal}
                 booking={selectedBooking}
                 yachts={yachts}
                 onUpdateBooking={updateBooking}
